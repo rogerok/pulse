@@ -4,9 +4,11 @@
   "version": "0.0.0",
   "type": "module",
   "engines": {
-    "node": ">=20.16.0"
+    "node": ">=25.0.0"
   },
   "scripts": {
+    "start": "node src/index.ts",
+    "start:hw1": "node src/hw/1/index.ts",
     "test": "vitest",
     "test:ui": "vitest --ui",
     "lint": "eslint .",

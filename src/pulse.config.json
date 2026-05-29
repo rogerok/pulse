@@ -1,0 +1,15 @@
+{
+  "monitors": [
+    {
+      "id": "github-www",
+      "url": "https://github.com",
+      "interval": "30s"
+    },
+    {
+      "id": "self-api",
+      "url": "https://api.self.local/health",
+      "interval": "1m",
+      "expect": { "status": 200 }
+    }
+  ]
+}

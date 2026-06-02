@@ -1,29 +1,32 @@
 import { Effect } from "effect";
 
 import { decodeFromFile } from "./config.ts";
+import { formatAlert, recordResult } from "./matching.ts";
 import { probe } from "./probe.ts";
-
-// const rawArgs = process.argv.slice(2);
-// const args = rawArgs[0] === "--" ? rawArgs.slice(1) : rawArgs;
-// const url = args[1];
-
-// if (args[0] !== "url" || url === undefined) {
-//   console.error("usage: pnpm start url <https://...>");
-//   process.exit(1);
-// }
 
 const program = Effect.gen(function* () {
   const config = yield* decodeFromFile("./src/pulse.config.json");
 
   for (const monitor of config.monitors) {
     const result = yield* probe(monitor.url);
+    const event = yield* recordResult(monitor.id, probe(monitor.url));
     yield* Effect.sync(() => {
-      console.log(`${monitor.id}: status ${result.status} in ${result.elapsedMs} ms`);
+      if (event._tag === "ProbeSuccess") {
+        console.log(`${monitor.id}: status ${result.status} in ${result.elapsedMs} ms`);
+      } else if (event._tag === "ProbeFailure") {
+        console.warn(`${event.monitorId}: ${event.reason}`);
+      }
     });
   }
 });
 
-Effect.runPromise(program).catch((cause: unknown) => {
-  console.error("pulse failed:", cause);
-  process.exit(2);
-});
+Effect.runPromise(
+  program.pipe(
+    Effect.catchAll((e) =>
+      Effect.sync(() => {
+        console.error(formatAlert(e));
+        process.exit(2);
+      }),
+    ),
+  ),
+);

@@ -1,11 +1,41 @@
 import { Data } from "effect";
 
+export class ConfigParseError extends Data.TaggedError("ConfigParseError")<{
+  readonly cause: unknown;
+  readonly path: string;
+}> {}
+
 export class NetworkError extends Data.TaggedError("NetworkError")<{
   readonly cause: unknown;
   readonly url: string;
 }> {}
 
-export class ConfigParseError extends Data.TaggedError("ConfigParseError")<{
+export class HttpStatusError extends Data.TaggedError("HttpStatusError")<{
   readonly cause: unknown;
-  readonly path: string;
+  expected: number;
+  status: number;
+  url: string;
+  body?: string;
 }> {}
+
+export class BodyContractError extends Data.TaggedError("BodyContractError")<{
+  readonly cause: unknown;
+  readonly url: string;
+}> {}
+
+export class TimeoutError extends Data.TaggedError("TimeoutError")<{
+  readonly timeoutMs: number;
+  readonly url: string;
+}> {}
+
+export class StorageError extends Data.TaggedError("StorageError")<{
+  readonly cause: unknown;
+}> {}
+
+export type PulseError =
+  | BodyContractError
+  | ConfigParseError
+  | HttpStatusError
+  | NetworkError
+  | StorageError
+  | TimeoutError;

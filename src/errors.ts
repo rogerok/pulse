@@ -12,10 +12,10 @@ export class NetworkError extends Data.TaggedError("NetworkError")<{
 
 export class HttpStatusError extends Data.TaggedError("HttpStatusError")<{
   readonly cause: unknown;
-  expected: number;
-  status: number;
-  url: string;
-  body?: string;
+  readonly expected: number;
+  readonly status: number;
+  readonly url: string;
+  readonly body?: string;
 }> {}
 
 export class BodyContractError extends Data.TaggedError("BodyContractError")<{

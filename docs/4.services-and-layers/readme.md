@@ -85,6 +85,12 @@ const program = probe('https://github.com').pipe(Effect.provide(HttpLive));
 // program: Effect<Response, NetworkError, never>
 ```
 
+Здесь слева от `.pipe(...)` стоит программа `Effect`, поэтому используется `Effect.provide`.
+Он дает зависимости программе.
+
+`Layer.provide` нужен в другой ситуации: когда слева от `.pipe(...)` стоит сам `Layer`, и мы хотим закрыть
+зависимости одного слоя другим слоем.
+
 ### Layer с зависимостью
 
 `Storage` требует `Logger`

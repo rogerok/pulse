@@ -123,4 +123,155 @@ const StorageWithLogger = StorageLive.pipe(Layer.provide(LoggerLive));
 
 ```
 
-`Layer.succceed` - синхронный конструктор: подкладываем готовый объект.
+`Layer.succeed` - синхронный конструктор: подкладываем готовый объект.
+
+В этом примере есть два слоя:
+
+```ts
+LoggerLive
+StorageLive
+```
+
+Они делают разные вещи.
+
+`LoggerLive` дает готовый `Logger`:
+
+```ts
+const LoggerLive = Layer.succeed(Logger, {
+  info: (msg) => Effect.sync(() => console.log(msg)),
+});
+```
+
+Тип можно читать так:
+
+```ts
+// Layer<что дает, ошибка, что требует>
+Layer<Logger, never, never>
+```
+
+То есть:
+
+```ts
+LoggerLive: Layer<Logger, never, never>
+```
+
+Означает:
+
+- слой дает `Logger`;
+- слой не падает;
+- слой ничего не требует.
+
+`StorageLive` устроен иначе:
+
+```ts
+const StorageLive = Layer.effect(
+  Storage,
+  Effect.gen(function* () {
+    const logger = yield* Logger;
+
+    return {
+      append: (event) =>
+        Effect.gen(function* () {
+          yield* logger.info(`appending ${event._tag}`);
+        }),
+    };
+  }),
+);
+```
+
+Внутри `StorageLive` есть строка:
+
+```ts
+const logger = yield* Logger;
+```
+
+Значит, чтобы собрать `Storage`, этому слою нужен `Logger`.
+
+Тип такого слоя:
+
+```ts
+StorageLive: Layer<Storage, never, Logger>
+```
+
+Читается так:
+
+- слой дает `Storage`;
+- слой не падает;
+- слой требует `Logger`.
+
+Теперь подставляем `LoggerLive` внутрь `StorageLive`:
+
+```ts
+const StorageWithLogger = StorageLive.pipe(
+  Layer.provide(LoggerLive),
+);
+```
+
+`Layer.provide(LoggerLive)` говорит:
+
+```ts
+// Если StorageLive требует Logger,
+// возьми Logger из LoggerLive.
+```
+
+До `provide`:
+
+```ts
+StorageLive: Layer<Storage, never, Logger>
+```
+
+После `provide`:
+
+```ts
+StorageWithLogger: Layer<Storage, never, never>
+```
+
+Требование `Logger` исчезло, потому что мы уже закрыли его через `LoggerLive`.
+
+Итог:
+
+```ts
+const StorageWithLogger = StorageLive.pipe(
+  Layer.provide(LoggerLive),
+);
+```
+
+Это уже самодостаточный слой:
+
+```ts
+StorageWithLogger: Layer<Storage, never, never>
+```
+
+Его можно дать программе через `Effect.provide`:
+
+```ts
+const program = saveEvent(event).pipe(
+  Effect.provide(StorageWithLogger),
+);
+```
+
+Главное правило:
+
+```ts
+Layer.provide(A)
+```
+
+подкладывает слой `A` внутрь другого слоя и закрывает его зависимости.
+
+Если слой требует `Logger`:
+
+```ts
+Layer<Storage, never, Logger>
+```
+
+а ты даешь слой, который производит `Logger`:
+
+```ts
+Layer<Logger, never, never>
+```
+
+результат больше не требует `Logger`:
+
+```ts
+Layer<Storage, never, never>
+```

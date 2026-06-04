@@ -1,11 +1,11 @@
 import { Effect, Schema } from "effect";
 
 import { ApiError, ApiHttpError, ApiNetworkError, ApiParseError } from "./errors.ts";
-import { Posts, type PostsType } from "./schemas.ts";
 
-export const postsUrl = "https://jsonplaceholder.typicode.com/posts";
-
-export const fetchPosts = (url: string): Effect.Effect<PostsType, ApiError> =>
+export const fetchJson = <A, I>(
+  url: string,
+  schema: Schema.Schema<A, I>,
+): Effect.Effect<A, ApiError> =>
   Effect.gen(function* () {
     const resp = yield* Effect.tryPromise({
       try: (signal) => fetch(url, { signal }),
@@ -21,7 +21,7 @@ export const fetchPosts = (url: string): Effect.Effect<PostsType, ApiError> =>
       catch: (cause) => new ApiParseError({ cause, url }),
     });
 
-    return yield* Schema.decodeUnknown(Posts)(json).pipe(
+    return yield* Schema.decodeUnknown(schema)(json).pipe(
       Effect.mapError((cause) => new ApiParseError({ cause, url })),
     );
   });

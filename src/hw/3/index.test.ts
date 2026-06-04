@@ -1,7 +1,8 @@
 import { Effect } from "effect";
 
 import { ApiNetworkError, ApiParseError } from "./errors.ts";
-import { fetchPosts } from "./index.ts";
+import { fetchJson } from "./index.ts";
+import { Posts } from "./schemas.ts";
 
 const url = "https://example.com/posts";
 
@@ -22,7 +23,7 @@ describe("fetchPosts", () => {
     const fetchMock = vi.fn().mockResolvedValue(Response.json(posts));
     vi.stubGlobal("fetch", fetchMock);
 
-    const result = await Effect.runPromise(fetchPosts(url));
+    const result = await Effect.runPromise(fetchJson(url, Posts));
 
     expect(result).toEqual(posts);
     expect(fetchMock).toHaveBeenCalledWith(url, {
@@ -36,7 +37,7 @@ describe("fetchPosts", () => {
 
     vi.stubGlobal("fetch", vi.fn().mockRejectedValue(cause));
 
-    const error = await Effect.runPromise(Effect.flip(fetchPosts(url)));
+    const error = await Effect.runPromise(Effect.flip(fetchJson(url, Posts)));
 
     expect(error).toBeInstanceOf(ApiNetworkError);
     expect(error.cause).toBe(cause);
@@ -53,7 +54,7 @@ describe("fetchPosts", () => {
       ),
     );
 
-    const err = await Effect.runPromise(Effect.flip(fetchPosts(url)));
+    const err = await Effect.runPromise(Effect.flip(fetchJson(url, Posts)));
 
     expect(err).toBeInstanceOf(ApiParseError);
     expect(err.url).toBe(url);

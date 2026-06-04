@@ -18,7 +18,5 @@ export const Post = Schema.Struct({
   title: Schema.String,
   userId: UserId,
 });
-export type PostType = Schema.Schema.Type<typeof Post>;
 
 export const Posts = Schema.Array(Post);
-export type PostsType = Schema.Schema.Type<typeof Posts>;

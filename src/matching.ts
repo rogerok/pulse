@@ -1,8 +1,8 @@
-import { Effect, Match } from "effect";
+import { Clock, Effect, Match } from "effect";
 
 import { MonitorId } from "./config.ts";
 import { HttpStatusError, NetworkError, PulseError, TimeoutError } from "./errors.ts";
-import { MonitorEvent, ProbeFailure, ProbeSuccess } from "./events.ts";
+import { MonitorEvent, ProbeFailure } from "./events.ts";
 import { ProbeResult } from "./probe.ts";
 
 export const formatAlert = (error: PulseError): string =>
@@ -26,7 +26,7 @@ export const recordResult = <R>(
   probeEffect.pipe(
     Effect.matchEffect({
       onFailure: (error) =>
-        Effect.sync<ProbeFailure>(() => {
+        Effect.gen(function* () {
           const reason: ProbeFailure["reason"] =
             error._tag === "TimeoutError"
               ? "timeout"
@@ -34,23 +34,29 @@ export const recordResult = <R>(
                 ? "http-status"
                 : "network";
 
+          const at = yield* Clock.currentTimeMillis;
+
           return {
             _tag: "ProbeFailure",
-            at: Date.now(),
+            at: at,
             monitorId,
             reason,
             url: error.url,
           };
         }),
       onSuccess: (result) =>
-        Effect.sync<ProbeSuccess>(() => ({
-          _tag: "ProbeSuccess",
-          at: Date.now(),
-          elapsedMs: result.elapsedMs,
-          monitorId,
-          status: result.status,
-          url: result.url,
-        })),
+        Effect.gen(function* () {
+          const at = yield* Clock.currentTimeMillis;
+
+          return {
+            _tag: "ProbeSuccess",
+            at,
+            elapsedMs: result.elapsedMs,
+            monitorId,
+            status: result.status,
+            url: result.url,
+          };
+        }),
     }),
   );
 

@@ -10,13 +10,15 @@ export class NetworkError extends Data.TaggedError("NetworkError")<{
   readonly url: string;
 }> {}
 
-export class HttpStatusError extends Data.TaggedError("HttpStatusError")<{
+type HttpStatus = {
   readonly cause: unknown;
   readonly expected: number;
   readonly status: number;
   readonly url: string;
   readonly body?: string;
-}> {}
+};
+
+export class HttpStatusError extends Data.TaggedError("HttpStatusError")<HttpStatus> {}
 
 export class BodyContractError extends Data.TaggedError("BodyContractError")<{
   readonly cause: unknown;
@@ -31,10 +33,14 @@ export class TimeoutError extends Data.TaggedError("TimeoutError")<{
 export class StorageError extends Data.TaggedError("StorageError")<{
   readonly cause: unknown;
 }> {}
+export class FileSystemError extends Data.TaggedError("StorageError")<{
+  readonly cause: unknown;
+}> {}
 
 export type PulseError =
   | BodyContractError
   | ConfigParseError
+  | FileSystemError
   | HttpStatusError
   | NetworkError
   | StorageError

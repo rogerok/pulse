@@ -1,8 +1,8 @@
 import { Context, Effect, Layer } from "effect";
-import * as fs from "node:fs/promises";
 
 import { StorageError } from "../errors.ts";
 import { MonitorEvent } from "../events.ts";
+import { FsService } from "./fs.ts";
 
 export class Storage extends Context.Tag("Pulse/Storage")<
   Storage,
@@ -14,21 +14,16 @@ export class Storage extends Context.Tag("Pulse/Storage")<
 export const StorageLive = Layer.scoped(
   Storage,
   Effect.gen(function* () {
-    const handle = yield* Effect.acquireRelease(
-      Effect.tryPromise({
-        try: () => fs.open("file.jsonl", "a"),
-        catch: (cause) => new StorageError({ cause }),
-      }),
-      (h) => Effect.promise(() => h.close()),
+    const fs = yield* FsService;
+
+    const handle = yield* Effect.acquireRelease(fs.append("file.jsonl"), (handle) =>
+      handle.close().pipe(Effect.orDie),
     );
 
     return {
       append: (e: MonitorEvent) =>
-        Effect.tryPromise({
-          try: async () => {
-            await handle.write(JSON.stringify(e) + "\n");
-          },
-          catch: (cause) => new StorageError({ cause }),
+        Effect.gen(function* () {
+          yield* handle.write(JSON.stringify(e) + "\n");
         }),
     };
   }),

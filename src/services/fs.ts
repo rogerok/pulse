@@ -30,6 +30,12 @@ export class FsService extends Effect.Service<FsService>()("Pulse/FsService", {
             }),
         };
       }),
+
+    readText: (path: string) =>
+      Effect.tryPromise({
+        try: () => fs.readFile(path, "utf-8"),
+        catch: (cause) => new StorageError({ cause }),
+      }),
   },
 }) {}
 

@@ -2,7 +2,7 @@ import { Context, Effect, Layer, Schema } from "effect";
 
 import { StorageError } from "../errors.ts";
 import { MonitorEvent } from "../events.ts";
-import { FsService, FsServiceLive } from "./fs.ts";
+import { FsService } from "./fs.ts";
 
 export class StorageConfig extends Context.Tag("Pulse/StorageConfig")<
   StorageConfig,
@@ -49,7 +49,7 @@ export const StorageLive = Layer.scoped(
         }),
     };
   }),
-).pipe(Layer.provide(Layer.mergeAll(FsServiceLive, StorageConfigLive)));
+);
 
 export const StorageInMemoryLive = Layer.effect(
   Storage,

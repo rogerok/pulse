@@ -39,4 +39,4 @@ export class FsService extends Effect.Service<FsService>()("Pulse/FsService", {
   },
 }) {}
 
-export const FsServiceLive = FsService.Default;
+export const FsLive = FsService.Default;

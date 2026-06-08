@@ -1,9 +1,10 @@
 import { Clock, Effect, Match } from "effect";
 
+import type { ProbeResult } from "./probe.ts";
+
 import { MonitorId } from "./config.ts";
-import { HttpStatusError, NetworkError, PulseError, TimeoutError } from "./errors.ts";
+import { HttpStatusError, NetworkError, type PulseError, TimeoutError } from "./errors.ts";
 import { MonitorEvent, ProbeFailure } from "./events.ts";
-import { ProbeResult } from "./probe.ts";
 
 export const formatAlert = (error: PulseError): string =>
   Match.value(error).pipe(

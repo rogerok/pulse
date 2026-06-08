@@ -3,6 +3,7 @@ import { Effect } from "effect";
 import { decodeFromFile } from "./config.ts";
 import { formatAlert, recordResult } from "./matching.ts";
 import { probe } from "./probe.ts";
+import { runtime } from "./runtime.ts";
 
 const program = Effect.gen(function* () {
   const config = yield* decodeFromFile("./src/pulse.config.json");
@@ -20,13 +21,17 @@ const program = Effect.gen(function* () {
   }
 });
 
-Effect.runPromise(
-  program.pipe(
-    Effect.catchAll((e) =>
-      Effect.sync(() => {
-        console.error(formatAlert(e));
-        process.exit(2);
-      }),
+try {
+  await runtime.runPromise(
+    program.pipe(
+      Effect.catchAll((e) =>
+        Effect.gen(function* () {
+          yield* Effect.logError(formatAlert(e));
+          process.exit(2);
+        }),
+      ),
     ),
-  ),
-);
+  );
+} finally {
+  await runtime.dispose();
+}

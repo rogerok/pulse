@@ -208,4 +208,34 @@ describe("StorageLive", () => {
     expect(result).toBeInstanceOf(StorageError);
     expect(result).toBe(storageError);
   });
+
+  it("fails with StorageError when stored jsonl is invalid", async () => {
+    const FsMock = Layer.succeed(
+      FsService,
+      FsService.make({
+        append: (_path) =>
+          Effect.succeed({
+            close: () => Effect.void,
+            write: (_path) => Effect.void,
+          }),
+        readText: (_path) => Effect.succeed("not-json\n"),
+      }),
+    );
+
+    const StorageConfigMock = Layer.succeed(StorageConfig, {
+      path: "test-path.jsonl",
+    });
+
+    const TestLive = StorageLive.pipe(Layer.provide(Layer.mergeAll(FsMock, StorageConfigMock)));
+
+    const result = await Effect.runPromise(
+      Effect.gen(function* () {
+        const storage = yield* Storage;
+
+        return yield* storage.readAll();
+      }).pipe(Effect.provide(TestLive), Effect.flip),
+    );
+
+    expect(result).toBeInstanceOf(StorageError);
+  });
 });

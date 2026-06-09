@@ -4,7 +4,7 @@ import { NetworkError } from "../errors.ts";
 
 export class HttpService extends Effect.Service<HttpService>()("Pulse/HttpService", {
   effect: Effect.gen(function* () {
-    yield* Effect.logInfo("HttpService created");
+    yield* Effect.logInfo("HttpService constructed");
 
     return {
       get: (url: string) =>

@@ -1,10 +1,10 @@
 import { Clock, Effect, Match } from "effect";
 
+import type { MonitorEvent, ProbeFailure } from "./events.ts";
 import type { ProbeResult } from "./probe.ts";
 
-import { MonitorId } from "./config.ts";
 import { HttpStatusError, NetworkError, type PulseError, TimeoutError } from "./errors.ts";
-import { MonitorEvent, ProbeFailure } from "./events.ts";
+import { CurrentMonitor } from "./services/monitor.ts";
 
 export const formatAlert = (error: PulseError): string =>
   Match.value(error).pipe(
@@ -21,45 +21,48 @@ export const formatAlert = (error: PulseError): string =>
   );
 
 export const recordResult = <R>(
-  monitorId: MonitorId,
   probeEffect: Effect.Effect<ProbeResult, HttpStatusError | NetworkError | TimeoutError, R>,
-): Effect.Effect<MonitorEvent, never, R> =>
-  probeEffect.pipe(
-    Effect.matchEffect({
-      onFailure: (error) =>
-        Effect.gen(function* () {
-          const reason: ProbeFailure["reason"] =
-            error._tag === "TimeoutError"
-              ? "timeout"
-              : error._tag === "HttpStatusError"
-                ? "http-status"
-                : "network";
+): Effect.Effect<MonitorEvent, never, CurrentMonitor | R> =>
+  Effect.gen(function* () {
+    const current = yield* CurrentMonitor;
 
-          const at = yield* Clock.currentTimeMillis;
+    return yield* probeEffect.pipe(
+      Effect.matchEffect({
+        onFailure: (error) =>
+          Effect.gen(function* () {
+            const reason: ProbeFailure["reason"] =
+              error._tag === "TimeoutError"
+                ? "timeout"
+                : error._tag === "HttpStatusError"
+                  ? "http-status"
+                  : "network";
 
-          return {
-            _tag: "ProbeFailure",
-            at: at,
-            monitorId,
-            reason,
-            url: error.url,
-          };
-        }),
-      onSuccess: (result) =>
-        Effect.gen(function* () {
-          const at = yield* Clock.currentTimeMillis;
+            const at = yield* Clock.currentTimeMillis;
 
-          return {
-            _tag: "ProbeSuccess",
-            at,
-            elapsedMs: result.elapsedMs,
-            monitorId,
-            status: result.status,
-            url: result.url,
-          };
-        }),
-    }),
-  );
+            return {
+              _tag: "ProbeFailure" as const,
+              at,
+              monitorId: current.id,
+              reason,
+              url: error.url,
+            };
+          }),
 
+        onSuccess: (result) =>
+          Effect.gen(function* () {
+            const at = yield* Clock.currentTimeMillis;
+
+            return {
+              _tag: "ProbeSuccess" as const,
+              at,
+              elapsedMs: result.elapsedMs,
+              monitorId: current.id,
+              status: result.status,
+              url: result.url,
+            };
+          }),
+      }),
+    );
+  });
 export const divideOrDie = (a: number, b: number): Effect.Effect<number> =>
   b === 0 ? Effect.die(new Error("division by zero is a programmer error")) : Effect.succeed(a / b);

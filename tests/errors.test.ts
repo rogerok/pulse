@@ -1,7 +1,7 @@
 import { Cause, Effect, Schema } from "effect";
 import { describe, expect, it } from "vitest";
 
-import { MonitorId } from "../src/config.ts";
+import { MonitorId, Url } from "../src/config.ts";
 import {
   BodyContractError,
   ConfigParseError,
@@ -11,8 +11,10 @@ import {
   TimeoutError,
 } from "../src/errors.ts";
 import { divideOrDie, formatAlert, recordResult } from "../src/matching.ts";
+import { CurrentMonitor } from "../src/services/monitor.ts";
 
 const id = Schema.decodeUnknownSync(MonitorId)("github");
+const url = Schema.decodeUnknownSync(Url)("https://a");
 
 describe("formatAlert", () => {
   it("покрывает все шесть вариантов", () => {
@@ -30,7 +32,9 @@ describe("formatAlert", () => {
 describe("recordResult", () => {
   it("строит ProbeSuccess из успешного probe", async () => {
     const ok = Effect.succeed({ elapsedMs: 10, status: 200, url: "https://a" });
-    const event = await Effect.runPromise(recordResult(id, ok));
+    const event = await Effect.runPromise(
+      recordResult(ok).pipe(CurrentMonitor.provide({ id, url })),
+    );
     expect(event._tag).toBe("ProbeSuccess");
     if (event._tag === "ProbeSuccess") {
       expect(event.status).toBe(200);
@@ -39,7 +43,9 @@ describe("recordResult", () => {
 
   it('строит ProbeFailure с reason="network" из NetworkError', async () => {
     const fail = Effect.fail(new NetworkError({ cause: "x", url: "https://a" }));
-    const event = await Effect.runPromise(recordResult(id, fail));
+    const event = await Effect.runPromise(
+      recordResult(fail).pipe(CurrentMonitor.provide({ id, url })),
+    );
     expect(event._tag).toBe("ProbeFailure");
     if (event._tag === "ProbeFailure") {
       expect(event.reason).toBe("network");
@@ -48,7 +54,9 @@ describe("recordResult", () => {
 
   it('строит ProbeFailure с reason="timeout" из TimeoutError', async () => {
     const fail = Effect.fail(new TimeoutError({ timeoutMs: 100, url: "https://a" }));
-    const event = await Effect.runPromise(recordResult(id, fail));
+    const event = await Effect.runPromise(
+      recordResult(fail).pipe(CurrentMonitor.provide({ id, url })),
+    );
     expect(event._tag).toBe("ProbeFailure");
     if (event._tag === "ProbeFailure") {
       expect(event.reason).toBe("timeout");

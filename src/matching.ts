@@ -1,9 +1,9 @@
 import { Clock, Effect, Match } from "effect";
 
-import type { MonitorEvent, ProbeFailure } from "./events.ts";
 import type { ProbeResult } from "./probe.ts";
 
 import { HttpStatusError, NetworkError, type PulseError, TimeoutError } from "./errors.ts";
+import { generateEventId, MonitorEvent, ProbeFailure } from "./events.ts";
 import { CurrentMonitor } from "./services/monitor.ts";
 
 export const formatAlert = (error: PulseError): string =>
@@ -38,10 +38,12 @@ export const recordResult = <R>(
                   : "network";
 
             const at = yield* Clock.currentTimeMillis;
+            const eventId = yield* generateEventId;
 
             return {
               _tag: "ProbeFailure" as const,
               at,
+              eventId,
               monitorId: current.id,
               reason,
               url: error.url,
@@ -51,11 +53,13 @@ export const recordResult = <R>(
         onSuccess: (result) =>
           Effect.gen(function* () {
             const at = yield* Clock.currentTimeMillis;
+            const eventId = yield* generateEventId;
 
             return {
               _tag: "ProbeSuccess" as const,
               at,
               elapsedMs: result.elapsedMs,
+              eventId,
               monitorId: current.id,
               status: result.status,
               url: result.url,

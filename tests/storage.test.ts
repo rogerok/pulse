@@ -1,7 +1,7 @@
 import { Effect, Layer, ManagedRuntime } from "effect";
 import { describe, expect } from "vitest";
 
-import { MonitorId } from "../src/config.ts";
+import { EventId, MonitorId } from "../src/config.ts";
 import { StorageError } from "../src/errors.ts";
 import { MonitorEvent } from "../src/events.ts";
 import { FsService } from "../src/services/fs.ts";
@@ -12,12 +12,15 @@ import {
   StorageLive,
 } from "../src/services/storage.ts";
 
+const eventId = EventId.make("1700000000000-5500");
+
 describe("StorageInMemoryLive", () => {
   it("returns appended events from readAll", async () => {
     const event: MonitorEvent = {
       _tag: "ProbeSuccess",
       at: 1_700_000_000_000,
       elapsedMs: 42,
+      eventId,
       monitorId: MonitorId.make("github-www"),
       status: 200,
       url: "https://github.com",
@@ -40,12 +43,14 @@ describe("StorageInMemoryLive", () => {
     const firstEvent: MonitorEvent = {
       _tag: "MonitorPaused",
       at: 1_700_000_000_000,
+      eventId,
       monitorId: MonitorId.make("github-www"),
     };
 
     const secondEvent: MonitorEvent = {
       _tag: "MonitorResumed",
       at: 1_700_000_000_001,
+      eventId,
       monitorId: MonitorId.make("github-www"),
     };
 
@@ -80,6 +85,7 @@ describe("StorageLive", () => {
     const event: MonitorEvent = {
       _tag: "MonitorPaused",
       at: 1_700_000_000_000,
+      eventId,
       monitorId: MonitorId.make("github-www"),
     };
 
@@ -125,12 +131,14 @@ describe("StorageLive", () => {
     const firstEvent: MonitorEvent = {
       _tag: "MonitorPaused",
       at: 1_700_000_000_000,
+      eventId,
       monitorId: MonitorId.make("github-www"),
     };
 
     const secondEvent: MonitorEvent = {
       _tag: "MonitorResumed",
       at: 1_700_000_000_001,
+      eventId,
       monitorId: MonitorId.make("github-www"),
     };
 
@@ -172,6 +180,7 @@ describe("StorageLive", () => {
     const event: MonitorEvent = {
       _tag: "MonitorPaused",
       at: 1_700_000_000_000,
+      eventId,
       monitorId: MonitorId.make("github-www"),
     };
 

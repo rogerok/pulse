@@ -10,13 +10,23 @@ export const MonitorId = Schema.String.pipe(
 );
 export type MonitorId = Schema.Schema.Type<typeof MonitorId>;
 
+export const EventId = Schema.String.pipe(
+  Schema.pattern(
+    /^\d+-\d{4}$/,
+
+    { identifier: "EventId" },
+  ),
+  Schema.brand("EventId"),
+);
+export type EventId = Schema.Schema.Type<typeof EventId>;
+
 export const Url = Schema.String.pipe(
   Schema.pattern(/^https?:\/\//, { identifier: "Url" }),
   Schema.brand("Url"),
 );
 export type Url = Schema.Schema.Type<typeof Url>;
 
-const IntervalMs = Schema.Number.pipe(
+export const IntervalMs = Schema.Number.pipe(
   Schema.int(),
   Schema.between(100, 26 * 3_600_000),
   Schema.brand("Interval"),

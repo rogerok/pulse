@@ -1,4 +1,4 @@
-import { Effect, Layer } from "effect";
+import { Effect } from "effect";
 
 import { NetworkError } from "../errors.ts";
 
@@ -38,8 +38,3 @@ export class HttpService extends Effect.Service<HttpService>()("Pulse/HttpServic
 }) {}
 
 export const HttpLive = HttpService.Default;
-
-export const HttpMock = Layer.mock(HttpService, {
-  _tag: "Pulse/HttpService",
-  get: (_url) => Effect.succeed({ body: "", status: 200 }),
-});

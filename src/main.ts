@@ -7,7 +7,3 @@ import { StorageConfigLive, StorageLive } from "./services/storage.ts";
 const Storage = StorageLive.pipe(Layer.provide(Layer.mergeAll(FsLive, StorageConfigLive)));
 
 export const MainLive = Layer.mergeAll(Storage, HttpLive);
-
-
-// Команда Pulse получает SIGTERM, программа корректно сбрасывает буфер
-// в файл, лог-файл закрыт. Тест ловит сигнал, проверяет, что handle.close был вызван.

@@ -8,7 +8,6 @@
   },
   "scripts": {
     "start": "node src/index.ts",
-    "start:hw1": "node src/hw/1/index.ts",
     "test": "vitest",
     "test:ui": "vitest --ui",
     "lint": "eslint .",
@@ -17,6 +16,8 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@effect/platform": "^0.96.2",
+    "@effect/platform-node": "^0.107.0",
     "effect": "^3.19.6"
   },
   "devDependencies": {

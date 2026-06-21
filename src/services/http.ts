@@ -7,11 +7,11 @@ export class HttpService extends Effect.Service<HttpService>()("Pulse/HttpServic
     yield* Effect.logInfo("HttpService constructed");
 
     return {
-      get: (url: string) =>
+      get: (url: string, abortSignal?: AbortSignal) =>
         Effect.tryPromise({
           try: (signal) =>
             fetch(url, {
-              signal,
+              signal: abortSignal ?? signal,
             }).then((r) => ({
               body: "",
               status: r.status,
@@ -19,13 +19,13 @@ export class HttpService extends Effect.Service<HttpService>()("Pulse/HttpServic
           catch: (cause) => new NetworkError({ cause, url }),
         }),
 
-      post: (url: string, body: unknown) =>
+      post: (url: string, body: unknown, abortSignal?: AbortSignal) =>
         Effect.tryPromise({
           try: (signal) =>
             fetch(url, {
               body: JSON.stringify(body),
               method: "POST",
-              signal,
+              signal: abortSignal ?? signal,
             }).then((r) => ({
               body: "",
               status: r.status,

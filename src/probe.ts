@@ -12,10 +12,17 @@ export type ProbeResult = {
 export const probe = (url: string): Effect.Effect<ProbeResult, NetworkError, HttpService> =>
   Effect.gen(function* () {
     const httpService = yield* HttpService;
-
     const startedAt = yield* Effect.sync(() => Date.now());
 
-    const response = yield* httpService.get(url);
+    const controller = yield* Effect.acquireRelease(
+      Effect.sync(() => new AbortController()),
+      (ac) =>
+        Effect.sync(() => {
+          ac.abort();
+        }),
+    );
+
+    const response = yield* httpService.get(url, controller.signal);
     const elapsedMs = yield* Effect.sync(() => Date.now() - startedAt);
     return { elapsedMs, status: response.status, url };
-  });
+  }).pipe(Effect.scoped);

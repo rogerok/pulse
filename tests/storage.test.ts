@@ -186,12 +186,14 @@ describe("StorageLive", () => {
 
     const storageError = new StorageError({ cause: "write failed" });
 
+    let closed = false;
+
     const FsMock = Layer.succeed(
       FsService,
       FsService.make({
         append: (_path) =>
           Effect.succeed({
-            close: () => Effect.void,
+            close: () => Effect.sync(() => (closed = true)),
 
             write: (_line: string) => Effect.fail(storageError),
           }),
@@ -216,6 +218,7 @@ describe("StorageLive", () => {
 
     expect(result).toBeInstanceOf(StorageError);
     expect(result).toBe(storageError);
+    expect(closed).toBe(true);
   });
 
   it("fails with StorageError when stored jsonl is invalid", async () => {

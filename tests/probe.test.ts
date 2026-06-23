@@ -16,10 +16,9 @@ describe("probe", () => {
     const HttpMock = Layer.mock(HttpService, {
       _tag: "Pulse/HttpService",
       get: (_url, signal) =>
-        Effect.gen(function* () {
+        Effect.sync(() => {
           abSignal = signal;
-          return yield* Effect.fail(new NetworkError({ cause: "", url: "" }));
-        }),
+        }).pipe(Effect.zipRight(Effect.fail(new NetworkError({ cause: "", url: "" })))),
     });
 
     const exit = await Effect.runPromise(
@@ -43,10 +42,9 @@ describe("probe", () => {
     const HttpMock = Layer.mock(HttpService, {
       _tag: "Pulse/HttpService",
       get: (_url, signal) =>
-        Effect.gen(function* () {
+        Effect.sync(() => {
           abSignal = signal;
-          return yield* Effect.fail(new NetworkError({ cause: "", url: "" }));
-        }),
+        }).pipe(Effect.zipRight(Effect.fail(new NetworkError({ cause: "", url: "" })))),
     });
 
     const FsMock = Layer.mock(FsService, {
@@ -90,10 +88,10 @@ describe("probe", () => {
         Effect.gen(function* () {
           yield* Effect.sleep(1);
 
-          return yield* Effect.succeed({
+          return {
             body: "s",
             status: 200,
-          });
+          };
         }),
     });
 

@@ -23,13 +23,11 @@ export const program = Effect.gen(function* () {
     monitors,
     (m) =>
       Effect.gen(function* () {
-        yield* Effect.gen(function* () {
-          yield* Effect.sync(() => {
-            activeProbes += 1;
-          });
-
-          yield* Effect.log(`${m.url} in work.\n probes in work: ${activeProbes}`);
+        yield* Effect.sync(() => {
+          activeProbes += 1;
         });
+
+        yield* Effect.log(`${m.url} in work.\n probes in work: ${activeProbes}`);
 
         const event = yield* recordResult(probe(m.url)).pipe(
           Effect.ensuring(

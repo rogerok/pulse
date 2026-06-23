@@ -3,13 +3,28 @@
     {
       "id": "github-www",
       "url": "https://github.com",
-      "interval": "30s"
+      "interval": "2s"
     },
     {
       "id": "self-api",
       "url": "https://api.self.local/health",
-      "interval": "1m",
+      "interval": "2s",
       "expect": { "status": 200 }
+    },
+    {
+      "id": "json-todo",
+      "url": "https://jsonplaceholder.typicode.com/todos/1",
+      "interval": "2s"
+    },
+    {
+      "id": "json-post",
+      "url": "https://jsonplaceholder.typicode.com/posts/1",
+      "interval": "2s"
+    },
+    {
+      "id": "json-user",
+      "url": "https://jsonplaceholder.typicode.com/users/1",
+      "interval": "2s"
     }
   ]
 }

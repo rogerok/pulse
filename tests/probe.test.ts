@@ -82,4 +82,58 @@ describe("probe", () => {
 
     expect(parentClosed).toBe(true);
   });
+
+  it("probe concurrency", async () => {
+    const HttpMock = Layer.mock(HttpService, {
+      _tag: "Pulse/HttpService",
+      get: (_url) =>
+        Effect.gen(function* () {
+          yield* Effect.sleep(1);
+
+          return yield* Effect.succeed({
+            body: "s",
+            status: 200,
+          });
+        }),
+    });
+
+    const urls = [
+      "https://example.com0",
+      "https://example.com1",
+      "https://example.com2",
+      "https://example.com3",
+      "https://example.com4",
+    ] as const;
+
+    const concurrency = 2;
+
+    let activeProbes = 0;
+    let maxActive = 0;
+
+    const program = Effect.forEach(
+      urls,
+      (url) =>
+        Effect.gen(function* () {
+          yield* Effect.sync(() => {
+            activeProbes += 1;
+            maxActive = Math.max(maxActive, activeProbes);
+          });
+
+          yield* probe(url).pipe(Effect.provide(HttpMock));
+        }).pipe(
+          Effect.ensuring(
+            Effect.gen(function* () {
+              yield* Effect.sync(() => {
+                activeProbes -= 1;
+              });
+            }),
+          ),
+        ),
+      { concurrency },
+    );
+
+    await Effect.runPromise(program);
+
+    expect(maxActive).equal(concurrency);
+  });
 });

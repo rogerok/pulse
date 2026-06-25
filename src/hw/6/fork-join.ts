@@ -21,7 +21,7 @@ const sleepWithError = Effect.gen(function* () {
   );
 });
 
-const programJoin: Effect.Effect<void> = Effect.gen(function* () {
+export const programJoin: Effect.Effect<void> = Effect.gen(function* () {
   const fiber = yield* Effect.fork(sleep);
   // дожидаемся результата выполнения sleep
   const result = yield* Fiber.join(fiber);
@@ -32,14 +32,14 @@ const programJoin: Effect.Effect<void> = Effect.gen(function* () {
 /* Fiber.join(fiber) приостанавливает текукщий файбер пока forked fiber не завершится, потом отдаёт его результат
  * Если forked fiber упадёт, ошибка попадёт в канал E
  */
-const programJoinWithError: Effect.Effect<void, CustomError> = Effect.gen(function* () {
+export const programJoinWithError: Effect.Effect<void, CustomError> = Effect.gen(function* () {
   const fiber = yield* Effect.fork(sleepWithError);
   const result = yield* Fiber.join(fiber);
 
   yield* Effect.log(result);
 });
 
-const programAwait: Effect.Effect<void> = Effect.gen(function* () {
+export const programAwait: Effect.Effect<void> = Effect.gen(function* () {
   const fiber = yield* Effect.fork(sleep);
   const result = yield* Fiber.await(fiber);
 

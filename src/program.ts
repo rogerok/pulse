@@ -4,6 +4,7 @@ import { decodeFromFile } from "./config.ts";
 import { recordResult } from "./matching.ts";
 import { probe } from "./probe.ts";
 import { CurrentMonitor } from "./services/monitor.ts";
+import { Storage } from "./services/storage.ts";
 
 export const program = Effect.gen(function* () {
   const config = yield* decodeFromFile("./src/pulse.config.json");
@@ -39,6 +40,10 @@ export const program = Effect.gen(function* () {
             }),
           ),
         );
+
+        const storage = yield* Storage;
+
+        yield* storage.append(event);
 
         yield* Effect.sync(() => {
           if (event._tag === "ProbeSuccess") {

@@ -1,0 +1,5 @@
+{"_tag":"ProbeFailure","at":1782322337474,"eventId":"1782322337474-3193","monitorId":"self-api","reason":"network","url":"https://api.self.local/health"}
+{"_tag":"ProbeSuccess","at":1782322337767,"elapsedMs":312,"eventId":"1782322337767-6395","monitorId":"github-www","status":200,"url":"https://github.com"}
+{"_tag":"ProbeSuccess","at":1782322337917,"elapsedMs":440,"eventId":"1782322337917-6775","monitorId":"json-todo","status":200,"url":"https://jsonplaceholder.typicode.com/todos/1"}
+{"_tag":"ProbeSuccess","at":1782322338050,"elapsedMs":277,"eventId":"1782322338050-5334","monitorId":"json-post","status":200,"url":"https://jsonplaceholder.typicode.com/posts/1"}
+{"_tag":"ProbeSuccess","at":1782322338211,"elapsedMs":291,"eventId":"1782322338211-8032","monitorId":"json-user","status":200,"url":"https://jsonplaceholder.typicode.com/users/1"}

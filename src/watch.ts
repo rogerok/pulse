@@ -1,10 +1,9 @@
 import { Effect } from "effect";
 
-import { ConfigParseError } from "./errors.ts";
+import { type PulseError } from "./errors.ts";
 import { formatAlert } from "./matching.ts";
-import { HttpService } from "./services/http.ts";
 
-export const makeWatch = (program: Effect.Effect<void, ConfigParseError, HttpService>) =>
+export const makeWatch = <E extends PulseError, R>(program: Effect.Effect<void, E, R>) =>
   program.pipe(
     Effect.catchAll((e) =>
       Effect.gen(function* () {

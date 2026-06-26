@@ -16,10 +16,9 @@ describe("probe", () => {
     const HttpMock = Layer.mock(HttpService, {
       _tag: "Pulse/HttpService",
       get: (_url, signal) =>
-        Effect.gen(function* () {
+        Effect.sync(() => {
           abSignal = signal;
-          return yield* Effect.fail(new NetworkError({ cause: "", url: "" }));
-        }),
+        }).pipe(Effect.zipRight(Effect.fail(new NetworkError({ cause: "", url: "" })))),
     });
 
     const exit = await Effect.runPromise(
@@ -43,10 +42,9 @@ describe("probe", () => {
     const HttpMock = Layer.mock(HttpService, {
       _tag: "Pulse/HttpService",
       get: (_url, signal) =>
-        Effect.gen(function* () {
+        Effect.sync(() => {
           abSignal = signal;
-          return yield* Effect.fail(new NetworkError({ cause: "", url: "" }));
-        }),
+        }).pipe(Effect.zipRight(Effect.fail(new NetworkError({ cause: "", url: "" })))),
     });
 
     const FsMock = Layer.mock(FsService, {
@@ -81,5 +79,59 @@ describe("probe", () => {
     await runtime.dispose();
 
     expect(parentClosed).toBe(true);
+  });
+
+  it("probe concurrency", async () => {
+    const HttpMock = Layer.mock(HttpService, {
+      _tag: "Pulse/HttpService",
+      get: (_url) =>
+        Effect.gen(function* () {
+          yield* Effect.sleep(1);
+
+          return {
+            body: "s",
+            status: 200,
+          };
+        }),
+    });
+
+    const urls = [
+      "https://example.com0",
+      "https://example.com1",
+      "https://example.com2",
+      "https://example.com3",
+      "https://example.com4",
+    ] as const;
+
+    const concurrency = 2;
+
+    let activeProbes = 0;
+    let maxActive = 0;
+
+    const program = Effect.forEach(
+      urls,
+      (url) =>
+        Effect.gen(function* () {
+          yield* Effect.sync(() => {
+            activeProbes += 1;
+            maxActive = Math.max(maxActive, activeProbes);
+          });
+
+          yield* probe(url).pipe(Effect.provide(HttpMock));
+        }).pipe(
+          Effect.ensuring(
+            Effect.gen(function* () {
+              yield* Effect.sync(() => {
+                activeProbes -= 1;
+              });
+            }),
+          ),
+        ),
+      { concurrency },
+    );
+
+    await Effect.runPromise(program);
+
+    expect(maxActive).equal(concurrency);
   });
 });

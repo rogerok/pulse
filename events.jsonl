@@ -3,3 +3,9 @@
 {"_tag":"ProbeSuccess","at":1782322337917,"elapsedMs":440,"eventId":"1782322337917-6775","monitorId":"json-todo","status":200,"url":"https://jsonplaceholder.typicode.com/todos/1"}
 {"_tag":"ProbeSuccess","at":1782322338050,"elapsedMs":277,"eventId":"1782322338050-5334","monitorId":"json-post","status":200,"url":"https://jsonplaceholder.typicode.com/posts/1"}
 {"_tag":"ProbeSuccess","at":1782322338211,"elapsedMs":291,"eventId":"1782322338211-8032","monitorId":"json-user","status":200,"url":"https://jsonplaceholder.typicode.com/users/1"}
+{"_tag":"ProbeFailure","at":1782930729756,"eventId":"1782930729756-8356","monitorId":"self-api","reason":"network","url":"https://api.self.local/health"}
+{"_tag":"ProbeSuccess","at":1782930730790,"elapsedMs":1021,"eventId":"1782930730790-3604","monitorId":"json-todo","status":200,"url":"https://jsonplaceholder.typicode.com/todos/1"}
+{"_tag":"ProbeSuccess","at":1782930731017,"elapsedMs":1318,"eventId":"1782930731017-3366","monitorId":"github-www","status":200,"url":"https://github.com"}
+{"_tag":"ProbeSuccess","at":1782930731682,"elapsedMs":878,"eventId":"1782930731682-6618","monitorId":"json-post","status":200,"url":"https://jsonplaceholder.typicode.com/posts/1"}
+{"_tag":"ProbeSuccess","at":1782930731995,"elapsedMs":971,"eventId":"1782930731995-6924","monitorId":"json-user","status":200,"url":"https://jsonplaceholder.typicode.com/users/1"}
+{"_tag":"ProbeFailure","at":1782931625969,"eventId":"1782931625969-6911","monitorId":"self-api","reason":"network","url":"https://api.self.local/health"}

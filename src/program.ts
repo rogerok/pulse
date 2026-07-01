@@ -7,6 +7,7 @@ import { CurrentMonitor } from "./services/monitor.ts";
 import { Storage } from "./services/storage.ts";
 
 export const program = Effect.gen(function* () {
+  // TODO: replace with service
   const config = yield* decodeFromFile("./src/pulse.config.json");
   const monitors = config.monitors;
 

@@ -1,7 +1,7 @@
 import { Effect, ParseResult, Schema } from "effect";
 
 import { IntervalDefault, RetriesDefault, TimeoutDefault } from "./constants.ts";
-import { ConfigParseError } from "./errors.ts";
+import { ConfigError } from "./errors.ts";
 import { FsService } from "./services/fs.ts";
 
 export const MonitorId = Schema.String.pipe(
@@ -96,14 +96,16 @@ export const decodeFromFile = (path: string) =>
   Effect.gen(function* () {
     const fs = yield* FsService;
 
-    const text = yield* fs.readText(path);
+    const text = yield* fs
+      .readText(path)
+      .pipe(Effect.mapError((cause) => new ConfigError({ cause, path })));
 
     const json = yield* Effect.try({
       try: () => JSON.parse(text) as unknown,
-      catch: (cause) => new ConfigParseError({ cause, path }),
+      catch: (cause) => new ConfigError({ cause, path }),
     });
 
     return yield* Schema.decodeUnknown(PulseConfig)(json).pipe(
-      Effect.mapError((cause) => new ConfigParseError({ cause, path })),
+      Effect.mapError((cause) => new ConfigError({ cause, path })),
     );
   });

@@ -4,8 +4,9 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 
 import { decodeFromFile, Interval, MonitorDefaults } from "../src/config.ts";
-import { ConfigParseError } from "../src/errors.ts";
+import { ConfigError } from "../src/errors.ts";
 import { FsLive } from "../src/services/fs.ts";
+
 describe("decodeFromFile", () => {
   it("decodes a valid config file", async () => {
     const dir = await mkdtemp(join(tmpdir(), "pulse-config-"));
@@ -70,7 +71,7 @@ describe("decodeFromFile", () => {
       throw new Error("expected decodeFromFile to fail");
     }
 
-    expect(result.left).toBeInstanceOf(ConfigParseError);
+    expect(result.left).toBeInstanceOf(ConfigError);
     const issues = ParseResult.ArrayFormatter.formatErrorSync(
       result.left.cause as ParseResult.ParseError,
     );

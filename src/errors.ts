@@ -33,12 +33,20 @@ export class TimeoutError extends Data.TaggedError("TimeoutError")<{
 export class StorageError extends Data.TaggedError("StorageError")<{
   readonly cause: unknown;
 }> {}
-export class FileSystemError extends Data.TaggedError("StorageError")<{
+
+export class FileSystemError extends Data.TaggedError("FileSystemError")<{
   readonly cause: unknown;
+  readonly path: string;
+}> {}
+
+export class ConfigError extends Data.TaggedError("ConfigError")<{
+  readonly cause: unknown;
+  readonly path: string;
 }> {}
 
 export type PulseError =
   | BodyContractError
+  | ConfigError
   | ConfigParseError
   | FileSystemError
   | HttpStatusError

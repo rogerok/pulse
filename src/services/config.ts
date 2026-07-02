@@ -1,7 +1,7 @@
 import { Context, Deferred, Effect, Layer } from "effect";
 
 import { decodeFromFile, PulseConfig } from "../config.ts";
-import { ConfigParseError, StorageError } from "../errors.ts";
+import { ConfigError } from "../errors.ts";
 import { FsService } from "./fs.ts";
 
 export class ConfigPath extends Context.Tag("Pulse/ConfigPath")<
@@ -17,7 +17,7 @@ export const ConfigPathLive = Layer.succeed(ConfigPath, {
 
 export class ConfigService extends Effect.Service<ConfigService>()("Pulse/ConfigService", {
   effect: Effect.gen(function* () {
-    const deferred = yield* Deferred.make<PulseConfig, ConfigParseError | StorageError>();
+    const deferred = yield* Deferred.make<PulseConfig, ConfigError>();
     const config = yield* ConfigPath;
     const fs = yield* FsService;
 

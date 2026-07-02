@@ -2,7 +2,7 @@ import { Effect, Layer, ManagedRuntime } from "effect";
 import { describe, expect } from "vitest";
 
 import { EventId, MonitorId } from "../src/config.ts";
-import { StorageError } from "../src/errors.ts";
+import { FileSystemError } from "../src/errors.ts";
 import { MonitorEvent } from "../src/events.ts";
 import { FsService } from "../src/services/fs.ts";
 import {
@@ -176,7 +176,7 @@ describe("StorageLive", () => {
     expect(lines).toEqual([`${JSON.stringify(firstEvent)}\n`, `${JSON.stringify(secondEvent)}\n`]);
   });
 
-  it("fails with StorageError when write fails", async () => {
+  it("fails with FileSystemError when write fails", async () => {
     const event: MonitorEvent = {
       _tag: "MonitorPaused",
       at: 1_700_000_000_000,
@@ -184,7 +184,7 @@ describe("StorageLive", () => {
       monitorId: MonitorId.make("github-www"),
     };
 
-    const storageError = new StorageError({ cause: "write failed" });
+    const storageError = new FileSystemError({ cause: "write failed", path: "some" });
 
     let closed = false;
 
@@ -216,7 +216,7 @@ describe("StorageLive", () => {
       }).pipe(Effect.provide(TestLive), Effect.flip),
     );
 
-    expect(result).toBeInstanceOf(StorageError);
+    expect(result).toBeInstanceOf(FileSystemError);
     expect(result).toBe(storageError);
     expect(closed).toBe(true);
   });
@@ -248,6 +248,6 @@ describe("StorageLive", () => {
       }).pipe(Effect.provide(TestLive), Effect.flip),
     );
 
-    expect(result).toBeInstanceOf(StorageError);
+    expect(result).toBeInstanceOf(FileSystemError);
   });
 });

@@ -1,7 +1,7 @@
 import { Effect, Ref } from "effect";
 import { describe } from "vitest";
 
-import { DomainLimiter, Limit } from "./semaphore-per-domain.ts";
+import { DomainLimiter, Limit } from "../src/services/domain-limiter.ts";
 
 describe("semaphore per domain", () => {
   it("check counters", async () => {

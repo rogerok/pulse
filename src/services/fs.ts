@@ -1,7 +1,7 @@
 import { Effect } from "effect";
 import * as fs from "node:fs/promises";
 
-import { StorageError } from "../errors.ts";
+import { FileSystemError } from "../errors.ts";
 
 export class FsService extends Effect.Service<FsService>()("Pulse/FsService", {
   succeed: {
@@ -9,7 +9,7 @@ export class FsService extends Effect.Service<FsService>()("Pulse/FsService", {
       Effect.gen(function* () {
         const handle = yield* Effect.tryPromise({
           try: () => fs.open(path, "a"),
-          catch: (cause) => new StorageError({ cause }),
+          catch: (cause) => new FileSystemError({ cause, path }),
         });
 
         return {
@@ -18,7 +18,7 @@ export class FsService extends Effect.Service<FsService>()("Pulse/FsService", {
               try: async () => {
                 await handle.close();
               },
-              catch: (cause) => new StorageError({ cause }),
+              catch: (cause) => new FileSystemError({ cause, path }),
             }),
 
           write: (line: string) =>
@@ -26,7 +26,7 @@ export class FsService extends Effect.Service<FsService>()("Pulse/FsService", {
               try: async () => {
                 await handle.write(line);
               },
-              catch: (cause) => new StorageError({ cause }),
+              catch: (cause) => new FileSystemError({ cause, path }),
             }),
         };
       }),
@@ -34,7 +34,7 @@ export class FsService extends Effect.Service<FsService>()("Pulse/FsService", {
     readText: (path: string) =>
       Effect.tryPromise({
         try: () => fs.readFile(path, "utf-8"),
-        catch: (cause) => new StorageError({ cause }),
+        catch: (cause) => new FileSystemError({ cause, path }),
       }),
   },
 }) {}

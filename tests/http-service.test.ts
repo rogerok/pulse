@@ -1,13 +1,12 @@
 import { Cause, Effect, Exit, Layer } from "effect";
 
 import { HttpService } from "../src/services/http.ts";
+export const mockResp = { body: "OK", status: 200 };
 
 export const HttpMock = Layer.mock(HttpService, {
   _tag: "Pulse/HttpService",
   get: (_url) => Effect.succeed(mockResp),
 });
-
-export const mockResp = { body: "OK", status: 200 };
 
 describe("HttpService", () => {
   it("get", async () => {

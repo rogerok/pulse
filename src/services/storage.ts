@@ -1,6 +1,6 @@
 import { Context, Effect, Layer, Schema } from "effect";
 
-import { StorageError } from "../errors.ts";
+import { FileSystemError } from "../errors.ts";
 import { MonitorEvent } from "../events.ts";
 import { FsService } from "./fs.ts";
 
@@ -18,8 +18,8 @@ export const StorageConfigLive = Layer.succeed(StorageConfig, {
 export class Storage extends Context.Tag("Pulse/Storage")<
   Storage,
   {
-    readonly append: (e: MonitorEvent) => Effect.Effect<void, StorageError>;
-    readonly readAll: () => Effect.Effect<ReadonlyArray<MonitorEvent>, StorageError>;
+    readonly append: (e: MonitorEvent) => Effect.Effect<void, FileSystemError>;
+    readonly readAll: () => Effect.Effect<ReadonlyArray<MonitorEvent>, FileSystemError>;
   }
 >() {}
 
@@ -45,7 +45,7 @@ export const StorageLive = Layer.scoped(
 
           return yield* Effect.forEach(lines, (line) =>
             Schema.decodeUnknown(Schema.parseJson(MonitorEvent))(line),
-          ).pipe(Effect.mapError((cause) => new StorageError({ cause })));
+          ).pipe(Effect.mapError((cause) => new FileSystemError({ cause, path: config.path })));
         }),
     };
   }),

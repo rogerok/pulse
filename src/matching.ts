@@ -16,6 +16,8 @@ export const formatAlert = (error: PulseError): string =>
     Match.tag("BodyContractError", (err) => `[body] ${err.url}: body doesn't match with schema`),
     Match.tag("TimeoutError", (err) => `[timeout] ${err.url}: timeout expired in ${err.timeoutMs}`),
     Match.tag("ConfigParseError", (err) => `[config] ${err.path}: can't parse config`),
+    Match.tag("ConfigError", (err) => `[config] ${err.path}: can't handle`),
+    Match.tag("FileSystemError", (err) => `[file system] ${err.path}: can't handle`),
     Match.tag("StorageError", () => `[storage]: can't write to disk`),
     Match.exhaustive,
   );

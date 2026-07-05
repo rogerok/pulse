@@ -8,7 +8,6 @@ export const ProbeSuccess = Schema.TaggedStruct("ProbeSuccess", {
   eventId: EventId,
   monitorId: MonitorId,
   status: Schema.Number,
-  // TODO: maybe should be Url schema?
   url: Schema.String,
 });
 
@@ -40,6 +39,7 @@ export type MonitorResumed = Schema.Schema.Type<typeof MonitorResumed>;
 
 export const MonitorEvent = Schema.Union(ProbeSuccess, ProbeFailure, MonitorPaused, MonitorResumed);
 export type MonitorEvent = Schema.Schema.Type<typeof MonitorEvent>;
+
 export const generateEventId = Effect.gen(function* () {
   const ms = yield* Clock.currentTimeMillis;
   const suffix = yield* Random.nextIntBetween(1000, 9999);

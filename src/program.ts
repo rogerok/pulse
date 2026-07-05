@@ -1,93 +1,53 @@
-import { Effect } from "effect";
+import { Effect, Queue } from "effect";
 
-import { decodeFromFile } from "./config.ts";
-import { recordResult } from "./matching.ts";
-import { probe } from "./probe.ts";
-import { CurrentMonitor } from "./services/monitor.ts";
+import { ConfigService } from "./services/config.ts";
+import { MonitorEvents } from "./services/monitor-events.ts";
+import { ProbeQueue } from "./services/probe-queue.ts";
 import { Storage } from "./services/storage.ts";
+import { worker } from "./worker.ts";
 
-export const program = Effect.gen(function* () {
-  const config = yield* decodeFromFile("./src/pulse.config.json");
-  const monitors = config.monitors;
+export const program = Effect.scoped(
+  Effect.gen(function* () {
+    const configService = yield* ConfigService;
+    const config = yield* configService.getConfig;
 
-  const startedAtConcurrent = yield* Effect.sync(() => Date.now());
+    const queue = yield* ProbeQueue;
+    const bus = yield* MonitorEvents;
+    const storage = yield* Storage;
+    const subscription = yield* bus.subscribe;
 
-  /**
-   * Запуск итерации по мониторам два раза подряд - пример для демонстрации
-   * Благодаря замерам от начала и до конца итераций, можно увидеть разницу
-   * в скорости выполнения пробинга с конкуренцией и без.
-   * С помощью счётчик activeProbes убеждаемся что активных пробингов не больше 2
-   */
-  let activeProbes = 0;
+    // Program связывает три примитива:
+    // ProbeQueue принимает задания, worker-ы их выполняют, MonitorEvents отдаёт результаты.
+    // Запускаем worker-ы на время этого scoped-блока.
+    // Когда program завершится или будет interrupted, forkScoped прервёт worker-ы.
+    yield* Effect.forEach(Array.from({ length: 2 }), () => Effect.forkScoped(worker), {
+      concurrency: "unbounded",
+    });
 
-  yield* Effect.forEach(
-    monitors,
-    (m) =>
-      Effect.gen(function* () {
-        yield* Effect.sync(() => {
-          activeProbes += 1;
-        });
+    // Producer: кладём все monitors из конфига в очередь.
+    yield* Effect.forEach(config.monitors, (monitor) => queue.enqueue(monitor));
 
-        yield* Effect.log(`${m.url} in work.\n probes in work: ${activeProbes}`);
+    // Consumer: ждём ровно по одному событию на каждый monitor.
+    const events = yield* Effect.forEach(config.monitors, () => Queue.take(subscription));
 
-        const event = yield* recordResult(probe(m.url)).pipe(
-          Effect.ensuring(
-            Effect.gen(function* () {
-              yield* Effect.sync(() => {
-                activeProbes -= 1;
-              });
-              yield* Effect.log(`${m.url} finished work.\n active probes: ${activeProbes}`);
-            }),
-          ),
-        );
+    yield* Effect.forEach(
+      events,
+      (event) =>
+        Effect.gen(function* () {
+          // Storage подписан через program: worker только публикует события в bus.
+          yield* storage.append(event);
 
-        const storage = yield* Storage;
-
-        yield* storage.append(event);
-
-        yield* Effect.sync(() => {
-          if (event._tag === "ProbeSuccess") {
-            console.log(`${event.monitorId}: status ${event.status} in ${event.elapsedMs} ms`);
-          } else if (event._tag === "ProbeFailure") {
-            console.warn(`${event.monitorId}: ${event.reason}`);
-          }
-        });
-      }).pipe(CurrentMonitor.provide(m)),
-    { concurrency: 2 },
-  );
-
-  const elapsedMsConcurrent = yield* Effect.sync(() => Date.now() - startedAtConcurrent);
-  yield* Effect.log(`elapsedMsConcurrent finished in ${elapsedMsConcurrent} ms`);
-
-  const startedAt = yield* Effect.sync(() => Date.now());
-
-  for (const monitor of config.monitors) {
-    yield* Effect.gen(function* () {
-      const event = yield* recordResult(probe(monitor.url));
-
-      yield* Effect.sync(() => {
-        if (event._tag === "ProbeSuccess") {
-          console.log(`${event.monitorId}: status ${event.status} in ${event.elapsedMs} ms`);
-        } else if (event._tag === "ProbeFailure") {
-          console.warn(`${event.monitorId}: ${event.reason}`);
-        }
-      });
-    }).pipe(CurrentMonitor.provide(monitor));
-  }
-
-  const elapsedMs = yield* Effect.sync(() => Date.now() - startedAt);
-
-  yield* Effect.log(`elapsedMs finished in ${elapsedMs} ms`);
-
-  const differenceBetweenModes = elapsedMs - elapsedMsConcurrent;
-  const result =
-    differenceBetweenModes === 0 ? "equal" : differenceBetweenModes > 0 ? "faster" : "slower";
-
-  if (result === "equal") {
-    yield* Effect.log(`concurrent mode is equal to default`);
-  } else {
-    yield* Effect.log(
-      `concurrent mode is ${result} than default in ${Math.abs(differenceBetweenModes)}`,
+          yield* Effect.gen(function* () {
+            if (event._tag === "ProbeSuccess") {
+              yield* Effect.log(
+                `${event.monitorId}: status ${event.status} in ${event.elapsedMs} ms`,
+              );
+            } else if (event._tag === "ProbeFailure") {
+              yield* Effect.logError(`${event.monitorId}: ${event.reason}`);
+            }
+          });
+        }),
+      { concurrency: 2 },
     );
-  }
-});
+  }),
+);

@@ -1,8 +1,8 @@
 import { Effect, ParseResult, Schema } from "effect";
-import { readFile } from "node:fs/promises";
 
 import { IntervalDefault, RetriesDefault, TimeoutDefault } from "./constants.ts";
-import { ConfigParseError } from "./errors.ts";
+import { ConfigError } from "./errors.ts";
+import { FsService } from "./services/fs.ts";
 
 export const MonitorId = Schema.String.pipe(
   Schema.pattern(/^[a-z][a-z0-9-]*$/, { identifier: "MonitorId" }),
@@ -92,19 +92,20 @@ export const PulseConfig = Schema.Struct({
 });
 export type PulseConfig = Schema.Schema.Type<typeof PulseConfig>;
 
-export const decodeFromFile = (path: string): Effect.Effect<PulseConfig, ConfigParseError> =>
+export const decodeFromFile = (path: string) =>
   Effect.gen(function* () {
-    const text = yield* Effect.tryPromise({
-      try: () => readFile(path, "utf-8"),
-      catch: (cause) => new ConfigParseError({ cause, path }),
-    });
+    const fs = yield* FsService;
+
+    const text = yield* fs
+      .readText(path)
+      .pipe(Effect.mapError((cause) => new ConfigError({ cause, path })));
 
     const json = yield* Effect.try({
       try: () => JSON.parse(text) as unknown,
-      catch: (cause) => new ConfigParseError({ cause, path }),
+      catch: (cause) => new ConfigError({ cause, path }),
     });
 
     return yield* Schema.decodeUnknown(PulseConfig)(json).pipe(
-      Effect.mapError((cause) => new ConfigParseError({ cause, path })),
+      Effect.mapError((cause) => new ConfigError({ cause, path })),
     );
   });

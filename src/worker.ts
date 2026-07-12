@@ -9,7 +9,7 @@ import { ProbeQueue } from "./services/probe-queue.ts";
 
 export const worker = Effect.gen(function* () {
   const bootstrap = yield* Bootstrap;
-  // Worker можно форкнуть заранее, но реальную работу он начнёт только после bootstrap.
+
   yield* bootstrap.ready.await;
 
   const queue = yield* ProbeQueue;

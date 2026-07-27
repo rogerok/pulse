@@ -6,8 +6,32 @@ import { NetworkError } from "../src/errors.ts";
 import { MonitorEvent } from "../src/events.ts";
 import { probe } from "../src/probe.ts";
 import { FsService } from "../src/services/fs.ts";
+import { DnsCache } from "../src/services/dns.ts";
 import { HttpService } from "../src/services/http.ts";
+import { MonitorEvents } from "../src/services/monitor-events.ts";
 import { Storage, StorageConfig, StorageLive } from "../src/services/storage.ts";
+import { Whois } from "../src/services/whois.ts";
+const DnsMock = Layer.mock(DnsCache, {
+  _tag: "Pulse/DnsCache",
+  lookup: () => Effect.succeed("127.0.0.1"),
+});
+
+const WhoisMock = Layer.mock(Whois, {
+  _tag: "Pulse/Whois",
+  lookup: () =>
+    Effect.succeed({
+      expiresAt: new Date("2100-01-01T00:00:00.000Z"),
+      registrar: "Test Registrar",
+    }),
+});
+
+const ProbeDependencies = Layer.mergeAll(DnsMock, MonitorEvents.Default, WhoisMock);
+
+const makeTarget = (url: string) => ({
+  host: new URL(url).hostname,
+  id: MonitorId.make("probe-test"),
+  url,
+});
 
 describe("probe", () => {
   it("probe", async () => {
@@ -22,7 +46,10 @@ describe("probe", () => {
     });
 
     const exit = await Effect.runPromise(
-      probe("https://example.com").pipe(Effect.provide(HttpMock), Effect.exit),
+      probe(makeTarget("https://example.com")).pipe(
+        Effect.provide(Layer.mergeAll(HttpMock, ProbeDependencies)),
+        Effect.exit,
+      ),
     );
 
     expect(Exit.isFailure(exit)).toBe(true);
@@ -62,14 +89,14 @@ describe("probe", () => {
 
     const TestLive = StorageLive.pipe(Layer.provide(Layer.mergeAll(FsMock, StorageConfigMock)));
 
-    const runtime = ManagedRuntime.make(Layer.mergeAll(TestLive, HttpMock));
+    const runtime = ManagedRuntime.make(Layer.mergeAll(TestLive, HttpMock, ProbeDependencies));
 
     const exit = await runtime.runPromise(
       Effect.gen(function* () {
         const storage = yield* Storage;
         yield* storage.append(event);
 
-        return yield* probe("http://example.com").pipe(Effect.exit);
+        return yield* probe(makeTarget("http://example.com")).pipe(Effect.exit);
       }),
     );
 
@@ -117,7 +144,9 @@ describe("probe", () => {
             maxActive = Math.max(maxActive, activeProbes);
           });
 
-          yield* probe(url).pipe(Effect.provide(HttpMock));
+          yield* probe(makeTarget(url)).pipe(
+            Effect.provide(Layer.mergeAll(HttpMock, ProbeDependencies)),
+          );
         }).pipe(
           Effect.ensuring(
             Effect.gen(function* () {

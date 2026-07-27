@@ -6,15 +6,31 @@ import type { MonitorEvent } from "../src/events.ts";
 import { type Monitor, PulseConfig } from "../src/config.ts";
 import { Bootstrap } from "../src/services/bootstrap.ts";
 import { DomainLimiter } from "../src/services/domain-limiter.ts";
+import { DnsCache } from "../src/services/dns.ts";
 import { HttpService } from "../src/services/http.ts";
 import { MonitorEvents } from "../src/services/monitor-events.ts";
 import { ProbeQueue } from "../src/services/probe-queue.ts";
+import { Whois } from "../src/services/whois.ts";
 import { worker } from "../src/worker.ts";
 
 const mockResp = { body: "OK", status: 200 };
 const HttpMock = Layer.mock(HttpService, {
   _tag: "Pulse/HttpService",
   get: (_url) => Effect.succeed(mockResp),
+});
+
+const DnsMock = Layer.mock(DnsCache, {
+  _tag: "Pulse/DnsCache",
+  lookup: () => Effect.succeed("127.0.0.1"),
+});
+
+const WhoisMock = Layer.mock(Whois, {
+  _tag: "Pulse/Whois",
+  lookup: () =>
+    Effect.succeed({
+      expiresAt: new Date("2100-01-01T00:00:00.000Z"),
+      registrar: "Test Registrar",
+    }),
 });
 
 const expectProbeSuccess = (event: MonitorEvent, monitor: Monitor) => {
@@ -50,6 +66,8 @@ const createTestLive = (latch: Effect.Latch) =>
     MonitorEvents.Default,
     DomainLimiter.Default,
     HttpMock,
+    DnsMock,
+    WhoisMock,
   );
 
 describe("worker", () => {

@@ -9,9 +9,7 @@ export class MonitorEventStream extends Effect.Service<MonitorEventStream>()(
     effect: Effect.gen(function* () {
       const bus = yield* MonitorEvents;
 
-      const all: Stream.Stream<MonitorEvent> = yield* Stream.fromPubSub(bus.pubsub, {
-        scoped: true,
-      });
+      const all: Stream.Stream<MonitorEvent> = Stream.fromPubSub(bus.pubsub);
 
       return { all };
     }),

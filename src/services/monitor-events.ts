@@ -11,6 +11,7 @@ export class MonitorEvents extends Effect.Service<MonitorEvents>()("Pulse/Monito
     return {
       // Worker публикует сюда результат probe.
       publish: (e: MonitorEvent) => PubSub.publish(pubsub, e),
+      pubsub,
       // Program, storage, console-printer или будущий notifier могут подписаться отдельно.
       subscribe: PubSub.subscribe(pubsub),
     };

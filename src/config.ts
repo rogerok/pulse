@@ -67,6 +67,7 @@ export type Expect = Schema.Schema.Type<typeof Expect>;
 
 export const Monitor = Schema.Struct({
   expect: Schema.optionalWith(Expect, { default: () => ({ status: StatusDefault }) }),
+  fallbackUrl: Url,
   id: MonitorId,
   interval: Interval,
   url: Url,

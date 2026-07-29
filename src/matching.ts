@@ -1,6 +1,6 @@
 import { Clock, Effect, Match } from "effect";
 
-import type { ProbeResult } from "./probe.ts";
+import type { ProbeResult } from "./probe/probe.ts";
 
 import { HttpStatusError, NetworkError, type PulseError, TimeoutError } from "./errors.ts";
 import { generateEventId, MonitorEvent, ProbeFailure } from "./events.ts";

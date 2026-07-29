@@ -53,3 +53,5 @@ export type PulseError =
   | NetworkError
   | StorageError
   | TimeoutError;
+
+export type ProbeError = HttpStatusError | NetworkError | TimeoutError;

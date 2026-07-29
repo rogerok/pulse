@@ -1,7 +1,7 @@
 import { Clock, Effect, Either } from "effect";
 
 import { generateEventId } from "./events.ts";
-import { probe } from "./probe.ts";
+import { probe } from "./probe/probe.ts";
 import { Bootstrap } from "./services/bootstrap.ts";
 import { DomainLimiter } from "./services/domain-limiter.ts";
 import { MonitorEvents } from "./services/monitor-events.ts";

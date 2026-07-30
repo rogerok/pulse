@@ -42,7 +42,7 @@ export const probeWithPolicy = (target: Monitor) =>
       return result.right;
     }
 
-    // const next = yield* sla.recordFailure;
+    yield* sla.recordFailure;
     const error = Either.isLeft(result) ? result.left : new Error(`status ${result.right.status}`);
     const at = yield* Clock.currentTimeMillis;
 

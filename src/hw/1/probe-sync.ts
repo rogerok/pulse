@@ -1,6 +1,6 @@
 import { Effect } from "effect";
 
-import type { ProbeResult } from "../../probe.ts";
+import type { ProbeResult } from "../../probe/probe.ts";
 
 import { NetworkError } from "../../errors.ts";
 

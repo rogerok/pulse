@@ -19,6 +19,7 @@ export class Storage extends Context.Tag("Pulse/Storage")<
   Storage,
   {
     readonly append: (e: MonitorEvent) => Effect.Effect<void, FileSystemError>;
+    appendBatch(events: ReadonlyArray<MonitorEvent>): Effect.Effect<void, FileSystemError>;
     readonly readAll: () => Effect.Effect<ReadonlyArray<MonitorEvent>, FileSystemError>;
   }
 >() {}
@@ -37,6 +38,10 @@ export const StorageLive = Layer.scoped(
       append: (e: MonitorEvent) =>
         Effect.gen(function* () {
           yield* handle.write(JSON.stringify(e) + "\n");
+        }),
+      appendBatch: (events) =>
+        Effect.gen(function* () {
+          yield* handle.write(events.map((e) => JSON.stringify(e)).join("\n") + "\n");
         }),
       readAll: () =>
         Effect.gen(function* () {
@@ -58,6 +63,7 @@ export const StorageInMemoryLive = Layer.effect(
 
     return {
       append: (e: MonitorEvent) => Effect.sync(() => void buffer.push(e)),
+      appendBatch: (es) => Effect.sync(() => void buffer.push(...es)),
       readAll: () => Effect.sync(() => buffer.slice()),
     };
   }),

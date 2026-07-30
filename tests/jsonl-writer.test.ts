@@ -1,12 +1,12 @@
-import { FileSystem } from "@effect/platform";
 import { describe, it } from "@effect/vitest";
 import { Effect, Fiber, Layer, TestClock } from "effect";
 
 import { EventId, MonitorId } from "../src/config.ts";
-import { ProbeSuccess } from "../src/events.ts";
+import { MonitorEvent, ProbeSuccess } from "../src/events.ts";
 import { JsonlWriter } from "../src/services/jsonl-writer.ts";
 import { MonitorEventStream } from "../src/services/monitor-events-stream.ts";
 import { MonitorEvents } from "../src/services/monitor-events.ts";
+import { Storage } from "../src/services/storage.ts";
 
 const makeEvent = (i: number) =>
   ProbeSuccess.make({
@@ -20,60 +20,69 @@ const makeEvent = (i: number) =>
   });
 
 describe("jsonl writer", () => {
-  it.effect("100 events emit", () => {
-    const writes: string[] = [];
+  const publishAll = (
+    events: ReadonlyArray<MonitorEvent>,
+    publish: (e: MonitorEvent) => Effect.Effect<void>,
+  ) =>
+    Effect.gen(function* () {
+      yield* Effect.fork(
+        Effect.sleep("1 millis").pipe(Effect.zipRight(Effect.forEach(events, publish))),
+      );
 
-    const fs = FileSystem.layerNoop({
-      writeFile: (_, data) =>
-        Effect.sync(() => {
-          writes.push(new TextDecoder().decode(data));
-        }),
+      yield* TestClock.adjust("1 millis");
     });
 
-    const EventsLive = MonitorEventStream.Default.pipe(Layer.provideMerge(MonitorEvents.Default));
+  {
+    it.effect("100 events emit", () => {
+      const batches: Array<ReadonlyArray<MonitorEvent>> = [];
+      const storage = Layer.mock(Storage, {
+        appendBatch: (events) => Effect.sync(() => void batches.push(events)),
+      });
 
-    const TestLive = JsonlWriter.Default.pipe(Layer.provideMerge(Layer.mergeAll(EventsLive, fs)));
+      const EventsLive = MonitorEventStream.Default.pipe(Layer.provideMerge(MonitorEvents.Default));
 
-    return Effect.scoped(
-      Effect.gen(function* () {
-        const writer = yield* JsonlWriter;
-        const events = yield* MonitorEvents;
+      const TestLive = JsonlWriter.Default.pipe(
+        Layer.provideMerge(Layer.mergeAll(EventsLive, storage)),
+      );
 
-        const fiber = yield* Effect.fork(writer.run);
+      return Effect.scoped(
+        Effect.gen(function* () {
+          const writer = yield* JsonlWriter;
+          const events = yield* MonitorEvents;
 
-        yield* Effect.yieldNow();
+          const fiber = yield* Effect.fork(writer.run);
 
-        const arr = Array.from({ length: 100 }, (_, i) => makeEvent(i));
+          yield* Effect.yieldNow();
 
-        yield* Effect.forEach(arr, events.publish);
+          const arr = Array.from({ length: 100 }, (_, i) => makeEvent(i));
 
-        yield* TestClock.adjust("100 millis");
+          yield* publishAll(arr, events.publish);
 
-        expect(writes).toHaveLength(1);
-        expect(writes[0]?.trim().split("\n")).toHaveLength(64);
+          expect(batches).toHaveLength(1);
+          expect(batches[0]).toHaveLength(64);
 
-        yield* TestClock.adjust("1 second");
+          yield* TestClock.adjust("1 second");
 
-        expect(writes).toHaveLength(2);
-        expect(writes[1]?.trim().split("\n")).toHaveLength(36);
+          expect(batches).toHaveLength(2);
+          expect(batches[1]).toHaveLength(36);
 
-        yield* Fiber.interrupt(fiber);
-      }).pipe(Effect.provide(TestLive)),
-    );
-  });
+          yield* Fiber.interrupt(fiber);
+        }).pipe(Effect.provide(TestLive)),
+      );
+    });
+  }
   it.effect("5 events emit", () => {
-    const writes: string[] = [];
+    const batches: Array<ReadonlyArray<MonitorEvent>> = [];
 
-    const fs = FileSystem.layerNoop({
-      writeFile: (_, data) =>
-        Effect.sync(() => {
-          writes.push(new TextDecoder().decode(data));
-        }),
+    const storage = Layer.mock(Storage, {
+      appendBatch: (events) => Effect.sync(() => void batches.push(events)),
     });
 
     const EventsLive = MonitorEventStream.Default.pipe(Layer.provideMerge(MonitorEvents.Default));
 
-    const TestLive = JsonlWriter.Default.pipe(Layer.provideMerge(Layer.mergeAll(EventsLive, fs)));
+    const TestLive = JsonlWriter.Default.pipe(
+      Layer.provideMerge(Layer.mergeAll(EventsLive, storage)),
+    );
 
     return Effect.scoped(
       Effect.gen(function* () {
@@ -86,13 +95,14 @@ describe("jsonl writer", () => {
 
         const arr = Array.from({ length: 5 }, (_, i) => makeEvent(i));
 
-        yield* Effect.forEach(arr, events.publish);
-        expect(writes).toHaveLength(0);
+        yield* publishAll(arr, events.publish);
+
+        expect(batches).toHaveLength(0);
 
         yield* TestClock.adjust("1 second");
 
-        expect(writes).toHaveLength(1);
-        expect(writes[0]?.trim().split("\n")).toHaveLength(5);
+        expect(batches).toHaveLength(1);
+        expect(batches[0]).toHaveLength(5);
 
         yield* Fiber.interrupt(fiber);
       }).pipe(Effect.provide(TestLive)),

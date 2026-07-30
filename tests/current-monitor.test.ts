@@ -12,6 +12,7 @@ describe("CurrentMonitor", () => {
       expect: {
         status: 200,
       },
+      fallbackUrl: Url.make("https://github.com"),
       id: MonitorId.make("github"),
       interval: IntervalMs.make(100),
       url: Url.make("https://github.com"),

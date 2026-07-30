@@ -3,26 +3,31 @@
     {
       "id": "github-www",
       "url": "https://github.com",
+      "fallbackUrl": "https://github.com",
       "interval": "2s"
     },
     {
       "id": "self-api",
       "url": "https://api.self.local/health",
       "interval": "2s",
+      "fallbackUrl": "https://github.com",
       "expect": { "status": 200 }
     },
     {
       "id": "json-todo",
+      "fallbackUrl": "https://jsonplaceholder.typicode.com/todos/2",
       "url": "https://jsonplaceholder.typicode.com/todos/1",
       "interval": "2s"
     },
     {
       "id": "json-post",
+      "fallbackUrl": "https://jsonplaceholder.typicode.com/posts/2",
       "url": "https://jsonplaceholder.typicode.com/posts/1",
       "interval": "2s"
     },
     {
       "id": "json-user",
+      "fallbackUrl": "https://jsonplaceholder.typicode.com/users/2",
       "url": "https://jsonplaceholder.typicode.com/users/1",
       "interval": "2s"
     }

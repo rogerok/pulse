@@ -1,6 +1,5 @@
 import { Effect, Stream } from "effect";
 
-import { type MonitorEvent } from "../events.ts";
 import { MonitorEvents } from "./monitor-events.ts";
 
 export class MonitorEventStream extends Effect.Service<MonitorEventStream>()(
@@ -9,7 +8,7 @@ export class MonitorEventStream extends Effect.Service<MonitorEventStream>()(
     effect: Effect.gen(function* () {
       const bus = yield* MonitorEvents;
 
-      const all: Stream.Stream<MonitorEvent> = Stream.fromPubSub(bus.pubsub);
+      const all = Stream.fromPubSub(bus.pubsub);
 
       return { all };
     }),

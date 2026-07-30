@@ -175,6 +175,53 @@ describe("StorageLive", () => {
     expect(events).toEqual([firstEvent, secondEvent]);
     expect(lines).toEqual([`${JSON.stringify(firstEvent)}\n`, `${JSON.stringify(secondEvent)}\n`]);
   });
+  it("writes batch events as JSONL and reads them back", async () => {
+    const lines: string[] = [];
+    const firstEvent: MonitorEvent = {
+      _tag: "MonitorPaused",
+      at: 1_700_000_000_000,
+      eventId,
+      monitorId: MonitorId.make("github-www"),
+    };
+
+    const secondEvent: MonitorEvent = {
+      _tag: "MonitorResumed",
+      at: 1_700_000_000_001,
+      eventId,
+      monitorId: MonitorId.make("github-www"),
+    };
+
+    const FsMock = Layer.succeed(
+      FsService,
+      FsService.make({
+        append: (_path) =>
+          Effect.succeed({
+            close: () => Effect.void,
+            write: (line) => Effect.sync(() => lines.push(line)),
+          }),
+        readText: (_path) => Effect.sync(() => lines.join("")),
+      }),
+    );
+
+    const StorageConfigMock = Layer.succeed(StorageConfig, {
+      path: "test-path.jsonl",
+    });
+
+    const TestLive = StorageLive.pipe(Layer.provide(Layer.mergeAll(FsMock, StorageConfigMock)));
+
+    const events = await Effect.runPromise(
+      Effect.gen(function* () {
+        const storage = yield* Storage;
+
+        yield* storage.appendBatch([firstEvent, secondEvent]);
+
+        return yield* storage.readAll();
+      }).pipe(Effect.provide(TestLive)),
+    );
+
+    expect(events).toEqual([firstEvent, secondEvent]);
+    expect(lines).toEqual([JSON.stringify(firstEvent) + "\n" + JSON.stringify(secondEvent) + "\n"]);
+  });
 
   it("fails with FileSystemError when write fails", async () => {
     const event: MonitorEvent = {

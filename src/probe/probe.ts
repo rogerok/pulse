@@ -1,12 +1,12 @@
 import { Effect, Either } from "effect";
 import { getDomain } from "tldts";
 
-import { type MonitorId } from "./config.ts";
-import { NetworkError } from "./errors.ts";
-import { DnsCache } from "./services/dns.ts";
-import { HttpService } from "./services/http.ts";
-import { MonitorEvents } from "./services/monitor-events.ts";
-import { Whois } from "./services/whois.ts";
+import { type MonitorId } from "../config.ts";
+import { NetworkError } from "../errors.ts";
+import { DnsCache } from "../services/dns.ts";
+import { HttpService } from "../services/http.ts";
+import { MonitorEvents } from "../services/monitor-events.ts";
+import { Whois } from "../services/whois.ts";
 
 export type ProbeResult = {
   readonly elapsedMs: number;

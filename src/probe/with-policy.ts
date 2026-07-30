@@ -2,7 +2,7 @@ import { Clock, Effect, Either } from "effect";
 
 import { Monitor } from "../config.ts";
 import { generateEventId } from "../events.ts";
-import { rertryPolicy } from "../retry-policy.ts";
+import { retryPolicy } from "../retry-policy.ts";
 import { MonitorEvents } from "../services/monitor-events.ts";
 import { Sla } from "../services/sla.ts";
 import { hedgeProbe } from "./hedged.ts";
@@ -19,7 +19,7 @@ export const probeWithPolicy = (target: Monitor) =>
         ? [target.url, target.fallbackUrl]
         : [target.fallbackUrl, target.url];
 
-    const attempt = hedgeProbe(activeUrl, backupUrl).pipe(Effect.retry(rertryPolicy));
+    const attempt = hedgeProbe(activeUrl, backupUrl).pipe(Effect.retry(retryPolicy));
 
     const start = yield* Clock.currentTimeMillis;
     const result = yield* attempt.pipe(Effect.either);
@@ -42,7 +42,7 @@ export const probeWithPolicy = (target: Monitor) =>
       return result.right;
     }
 
-    const next = yield* sla.recordFailure;
+    // const next = yield* sla.recordFailure;
     const error = Either.isLeft(result) ? result.left : new Error(`status ${result.right.status}`);
     const at = yield* Clock.currentTimeMillis;
 

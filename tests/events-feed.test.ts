@@ -48,6 +48,15 @@ describe("EventsFeed", () => {
   const collect = (feed: EventsFeed["feed"], count: number) =>
     Effect.fork(feed.pipe(Stream.take(count), Stream.runCollect));
 
+  const publishAfterStart = (monitorEvents: MonitorEvents, events: ReadonlyArray<MonitorEvent>) =>
+    Effect.gen(function* () {
+      yield* Effect.fork(
+        Effect.sleep("1 millis").pipe(Effect.zipRight(publishAll(monitorEvents, events))),
+      );
+
+      yield* TestClock.adjust("1 millis");
+    });
+
   it.effect("(а) первый consumer получает все опубликованные события", () =>
     Effect.gen(function* () {
       const eventsFeed = yield* EventsFeed;
@@ -55,8 +64,8 @@ describe("EventsFeed", () => {
       const publishedEvents = makeEvents(10);
 
       const consumer1 = yield* collect(eventsFeed.feed, publishedEvents.length);
-      yield* letSubscriberStart;
-      yield* publishAll(monitorEvents, publishedEvents);
+
+      yield* publishAfterStart(monitorEvents, publishedEvents);
 
       expect(Chunk.toArray(yield* Fiber.join(consumer1))).toEqual(publishedEvents);
     }).pipe(Effect.provide(TestLive), Effect.scoped),
@@ -86,13 +95,13 @@ describe("EventsFeed", () => {
           Stream.runCollect,
         ),
       );
-      yield* letSubscriberStart;
-      yield* publishAll(monitorEvents, initialEvents);
+
+      yield* publishAfterStart(monitorEvents, initialEvents);
+
       yield* Deferred.await(firstTenReceived);
 
       const consumer2 = yield* collect(eventsFeed.feed, 5 + newEvents.length);
-      yield* letSubscriberStart;
-      yield* publishAll(monitorEvents, newEvents);
+      yield* publishAfterStart(monitorEvents, newEvents);
 
       expect(Chunk.toArray(yield* Fiber.join(consumer1))).toEqual([...initialEvents, ...newEvents]);
       expect(Chunk.toArray(yield* Fiber.join(consumer2))).toEqual([
@@ -109,8 +118,7 @@ describe("EventsFeed", () => {
       const initialEvents = makeEvents(10);
 
       const consumer1 = yield* collect(eventsFeed.feed, initialEvents.length);
-      yield* letSubscriberStart;
-      yield* publishAll(monitorEvents, initialEvents);
+      yield* publishAfterStart(monitorEvents, initialEvents);
       yield* Fiber.join(consumer1);
       yield* letSubscriberStart;
 
@@ -121,7 +129,7 @@ describe("EventsFeed", () => {
       yield* letSubscriberStart;
 
       const freshEvent = makeEvent(11);
-      yield* publishAll(monitorEvents, [freshEvent]);
+      yield* publishAfterStart(monitorEvents, [freshEvent]);
 
       expect(Chunk.toArray(yield* Fiber.join(consumer2))).toEqual([freshEvent]);
     }).pipe(Effect.provide(TestLive), Effect.scoped),
@@ -134,8 +142,7 @@ describe("EventsFeed", () => {
       const initialEvents = makeEvents(10);
 
       const consumer1 = yield* collect(eventsFeed.feed, initialEvents.length);
-      yield* letSubscriberStart;
-      yield* publishAll(monitorEvents, initialEvents);
+      yield* publishAfterStart(monitorEvents, initialEvents);
       yield* Fiber.join(consumer1);
       yield* letSubscriberStart;
 

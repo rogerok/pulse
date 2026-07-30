@@ -13,55 +13,66 @@ interface DnsLookup extends Request.Request<string, DnsError> {
 
 const DnsLookup = Request.tagged<DnsLookup>("DnsLookup");
 
-const DnsLookupResolver = RequestResolver.makeBatched((requests: ReadonlyArray<DnsLookup>) =>
-  Effect.gen(function* () {
-    const hosts = requests.map((r) => r.host);
-    const result = yield* Effect.tryPromise({
-      try: () =>
-        Promise.all(
-          hosts.map((h) =>
-            dnsLib.resolve4(h).then(
-              (ips) => [h, ips[0] ?? null] as const,
-              () => [h, null] as const,
-            ),
-          ),
-        ),
-      catch: (cause) => new DnsError({ cause, host: hosts[0] ?? "" }),
-    }).pipe(Effect.either);
+type BatchResolve = (
+  hosts: ReadonlyArray<string>,
+) => Promise<ReadonlyArray<readonly [string, string | null]>>;
 
-    if (Either.isLeft(result)) {
+const nodeBatchResolve: BatchResolve = (hosts) =>
+  Promise.all(
+    hosts.map((h) =>
+      dnsLib.resolve4(h).then(
+        (ips) => [h, ips[0] ?? null] as const,
+        () => [h, null] as const,
+      ),
+    ),
+  );
+
+const makeDnsResolver = (batchResolve: BatchResolve) =>
+  RequestResolver.makeBatched((requests: ReadonlyArray<DnsLookup>) =>
+    Effect.gen(function* () {
+      const hosts = requests.map((r) => r.host);
+      const result = yield* Effect.tryPromise({
+        try: () => batchResolve(hosts),
+        catch: (cause) => new DnsError({ cause, host: hosts[0] ?? "" }),
+      }).pipe(Effect.either);
+
+      if (Either.isLeft(result)) {
+        yield* Effect.forEach(
+          requests,
+          (req) => Request.completeEffect(req, Effect.fail(result.left)),
+          { discard: true },
+        );
+        return;
+      }
+
+      const map = new Map(result.right);
+
       yield* Effect.forEach(
         requests,
-        (req) => Request.completeEffect(req, Effect.fail(result.left)),
-        { discard: true },
+        (req) => {
+          const ip = map.get(req.host);
+
+          return Request.completeEffect(
+            req,
+            ip == null
+              ? Effect.fail(new DnsError({ cause: "NXDOMAIN", host: req.host }))
+              : Effect.succeed(ip),
+          );
+        },
+        {
+          discard: true,
+        },
       );
-      return;
-    }
+    }),
+  );
 
-    const map = new Map(result.right);
+export const makeDnsLookup = (batchResolve: BatchResolve) => {
+  const resolver = RequestResolver.batchN(makeDnsResolver(batchResolve), 8);
 
-    yield* Effect.forEach(
-      requests,
-      (req) => {
-        const ip = map.get(req.host);
+  return (host: string) => Effect.request(DnsLookup({ host }), resolver);
+};
 
-        return Request.completeEffect(
-          req,
-          ip == null
-            ? Effect.fail(new DnsError({ cause: "NXDOMAIN", host: req.host }))
-            : Effect.succeed(ip),
-        );
-      },
-      {
-        discard: true,
-      },
-    );
-  }),
-);
-
-const BatchedDnsResolver = RequestResolver.batchN(DnsLookupResolver, 8);
-
-export const dnsLookup = (host: string) => Effect.request(DnsLookup({ host }), BatchedDnsResolver);
+export const dnsLookup = makeDnsLookup(nodeBatchResolve);
 
 export type DnsLookupFunction = (host: string) => Effect.Effect<string, DnsError>;
 

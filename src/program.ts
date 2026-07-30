@@ -3,7 +3,6 @@ import { Effect, Queue } from "effect";
 import { ConfigService } from "./services/config.ts";
 import { MonitorEvents } from "./services/monitor-events.ts";
 import { ProbeQueue } from "./services/probe-queue.ts";
-import { Storage } from "./services/storage.ts";
 import { worker } from "./worker.ts";
 
 export const program = Effect.scoped(
@@ -13,7 +12,6 @@ export const program = Effect.scoped(
 
     const queue = yield* ProbeQueue;
     const bus = yield* MonitorEvents;
-    const storage = yield* Storage;
     const subscription = yield* bus.subscribe;
 
     // Program связывает три примитива:
@@ -34,9 +32,6 @@ export const program = Effect.scoped(
       events,
       (event) =>
         Effect.gen(function* () {
-          // Storage подписан через program: worker только публикует события в bus.
-          yield* storage.append(event);
-
           yield* Effect.gen(function* () {
             if (event._tag === "ProbeSuccess") {
               yield* Effect.log(

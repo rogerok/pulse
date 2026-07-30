@@ -44,3 +44,17 @@
 {"_tag":"ProbeSuccess","at":1785257614743,"elapsedMs":1510,"eventId":"1785257614743-7423","monitorId":"github-www","status":200,"url":"https://github.com"}
 {"_tag":"ProbeSuccess","at":1785257614837,"elapsedMs":274,"eventId":"1785257614837-8903","monitorId":"json-post","status":200,"url":"https://jsonplaceholder.typicode.com/posts/1"}
 {"_tag":"ProbeSuccess","at":1785257615035,"elapsedMs":290,"eventId":"1785257615035-2146","monitorId":"json-user","status":200,"url":"https://jsonplaceholder.typicode.com/users/1"}
+{"_tag":"ProbeSkipped","monitorId":"self-api","reason":"dns"}
+{"_tag":"ProbeSkipped","monitorId":"self-api","reason":"dns"}
+{"_tag":"ProbeSuccess","at":1785340696926,"elapsedMs":782,"eventId":"1785340696926-4881","monitorId":"json-todo","status":200,"url":"https://jsonplaceholder.typicode.com/todos/1"}
+{"_tag":"ProbeSuccess","at":1785340696976,"elapsedMs":839,"eventId":"1785340696976-7159","monitorId":"github-www","status":200,"url":"https://github.com"}
+{"_tag":"ProbeSuccess","at":1785340697122,"elapsedMs":196,"eventId":"1785340697122-2359","monitorId":"json-post","status":200,"url":"https://jsonplaceholder.typicode.com/posts/1"}
+{"_tag":"ProbeSuccess","at":1785340697179,"elapsedMs":203,"eventId":"1785340697179-7440","monitorId":"json-user","status":200,"url":"https://jsonplaceholder.typicode.com/users/1"}
+{"_tag":"ProbeSkipped","monitorId":"self-api","reason":"dns"}
+{"_tag":"ProbeSuccess","at":1785344728296,"elapsedMs":817,"eventId":"1785344728296-9574","monitorId":"json-todo","status":200,"url":"https://jsonplaceholder.typicode.com/todos/1"}
+{"_tag":"ProbeSuccess","at":1785344728360,"elapsedMs":887,"eventId":"1785344728360-8316","monitorId":"github-www","status":200,"url":"https://github.com"}
+{"_tag":"ProbeSuccess","at":1785344728481,"elapsedMs":183,"eventId":"1785344728481-1601","monitorId":"json-post","status":200,"url":"https://jsonplaceholder.typicode.com/posts/1"}
+{"_tag":"ProbeSuccess","at":1785344728553,"elapsedMs":192,"eventId":"1785344728553-5972","monitorId":"json-user","status":200,"url":"https://jsonplaceholder.typicode.com/users/1"}
+{"_tag":"ProbeSkipped","monitorId":"self-api","reason":"dns"}
+{"_tag":"ProbeSuccess","at":1785348066250,"elapsedMs":902,"eventId":"1785348066250-9584","monitorId":"github-www","status":200,"url":"https://github.com"}
+{"_tag":"ProbeSuccess","at":1785348066260,"elapsedMs":908,"eventId":"1785348066260-1770","monitorId":"json-todo","status":200,"url":"https://jsonplaceholder.typicode.com/todos/1"}

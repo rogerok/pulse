@@ -35,7 +35,6 @@ describe("ConfigService", () => {
       FsService.make({
         append: (_path) =>
           Effect.die(new Error("append should not be used in config service test")),
-
         readText: (_path) =>
           Effect.gen(function* () {
             yield* Ref.update(calls, (n) => n + 1);
@@ -47,6 +46,7 @@ describe("ConfigService", () => {
 
             return JSON.stringify(encodedConfig);
           }),
+        writeText: () => Effect.void,
       }),
     );
 

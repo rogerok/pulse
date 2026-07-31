@@ -7,7 +7,7 @@
     "node": ">=25.0.0"
   },
   "scripts": {
-    "start": "node src/index.ts",
+    "pulse": "node src/cli/index.ts",
     "test": "vitest",
     "test:ui": "vitest --ui",
     "lint": "eslint .",
@@ -16,6 +16,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@effect/cli": "^0.77.0",
     "@effect/platform": "^0.96.2",
     "@effect/platform-node": "^0.107.0",
     "effect": "^3.19.6",

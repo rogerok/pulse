@@ -25,7 +25,7 @@ describe("formatAlert", () => {
     expect(formatAlert(new BodyContractError({ cause: "x", url: "a" }))).toContain("[body]");
     expect(formatAlert(new TimeoutError({ timeoutMs: 100, url: "a" }))).toContain("[timeout]");
     expect(formatAlert(new ConfigParseError({ cause: "x", path: "/x" }))).toContain("[config]");
-    expect(formatAlert(new StorageError({ cause: "x" }))).toContain("[storage]");
+    expect(formatAlert(new StorageError({ cause: "not-found" }))).toContain("[storage]");
   });
 });
 

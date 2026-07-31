@@ -68,3 +68,11 @@
 {"_tag":"ProbeSuccess","at":1785410199457,"elapsedMs":503,"eventId":"1785410199457-4823","monitorId":"json-todo","status":200,"url":"https://jsonplaceholder.typicode.com/todos/1"}
 {"_tag":"ProbeSuccess","at":1785410199762,"elapsedMs":304,"eventId":"1785410199762-8785","monitorId":"json-user","status":200,"url":"https://jsonplaceholder.typicode.com/users/1"}
 {"_tag":"ProbeSuccess","at":1785410199828,"elapsedMs":375,"eventId":"1785410199828-4965","monitorId":"json-post","status":200,"url":"https://jsonplaceholder.typicode.com/posts/1"}
+{"_tag":"ProbeSkipped","monitorId":"self-api","reason":"dns"}
+{"_tag":"ProbeSuccess","at":1785525501502,"elapsedMs":839,"eventId":"1785525501502-9717","monitorId":"github-www","status":200,"url":"https://github.com"}
+{"_tag":"ProbeSuccess","at":1785525501523,"elapsedMs":855,"eventId":"1785525501523-8950","monitorId":"json-todo","status":200,"url":"https://jsonplaceholder.typicode.com/todos/1"}
+{"_tag":"ProbeSkipped","monitorId":"self-api","reason":"dns"}
+{"_tag":"ProbeSuccess","at":1785525524044,"elapsedMs":687,"eventId":"1785525524044-5285","monitorId":"json-todo","status":200,"url":"https://jsonplaceholder.typicode.com/todos/1"}
+{"_tag":"ProbeSuccess","at":1785525524217,"elapsedMs":171,"eventId":"1785525524217-3080","monitorId":"json-post","status":200,"url":"https://jsonplaceholder.typicode.com/posts/1"}
+{"_tag":"ProbeSuccess","at":1785525524405,"elapsedMs":186,"eventId":"1785525524405-3007","monitorId":"json-user","status":200,"url":"https://jsonplaceholder.typicode.com/users/1"}
+{"_tag":"ProbeSuccess","at":1785525524484,"elapsedMs":1154,"eventId":"1785525524484-3243","monitorId":"github-www","status":200,"url":"https://github.com"}

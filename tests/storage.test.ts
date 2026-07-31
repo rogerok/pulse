@@ -98,6 +98,7 @@ describe("StorageLive", () => {
             write: (line) => Effect.sync(() => lines.push(line)),
           }),
         readText: (_path) => Effect.succeed(lines.join("")),
+        writeText: () => Effect.void,
       }),
     );
 
@@ -150,8 +151,9 @@ describe("StorageLive", () => {
             close: () => Effect.void,
             write: (line) => Effect.sync(() => lines.push(line)),
           }),
-
         readText: (_path) => Effect.sync(() => lines.join("")),
+
+        writeText: () => Effect.void,
       }),
     );
 
@@ -200,6 +202,7 @@ describe("StorageLive", () => {
             write: (line) => Effect.sync(() => lines.push(line)),
           }),
         readText: (_path) => Effect.sync(() => lines.join("")),
+        writeText: () => Effect.void,
       }),
     );
 
@@ -244,8 +247,8 @@ describe("StorageLive", () => {
 
             write: (_line: string) => Effect.fail(storageError),
           }),
-
         readText: (_path) => Effect.succeed(""),
+        writeText: () => Effect.void,
       }),
     );
 
@@ -278,6 +281,7 @@ describe("StorageLive", () => {
             write: (_path) => Effect.void,
           }),
         readText: (_path) => Effect.succeed("not-json\n"),
+        writeText: () => Effect.void,
       }),
     );
 

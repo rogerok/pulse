@@ -15,7 +15,8 @@ const expectStatus = Options.integer("expect-status").pipe(Options.withDefault(2
 
 export const addCommand = Command.make(
   "add",
-  { expectStatus, fallbackUrl, id, interval, url },
+  // eslint-disable-next-line perfectionist/sort-objects
+  { url, fallbackUrl, id, expectStatus, interval },
   ({ expectStatus, fallbackUrl, id, interval, url }) =>
     Effect.gen(function* () {
       yield* Effect.log(`добавляю ${url} с интервалом ${interval}, ждём ${expectStatus}`);

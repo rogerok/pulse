@@ -10,6 +10,7 @@ describe("ConfigService", () => {
     const encodedConfig = {
       monitors: [
         {
+          fallbackUrl: "https://github.com",
           id: "github-www",
           interval: "30s",
           url: "https://github.com",

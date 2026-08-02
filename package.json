@@ -17,7 +17,7 @@
   },
   "dependencies": {
     "@effect/cli": "^0.77.0",
-    "@effect/platform": "^0.96.2",
+    "@effect/platform": "^0.97.1",
     "@effect/platform-node": "^0.107.0",
     "effect": "^3.19.6",
     "tldts": "^7.4.9"

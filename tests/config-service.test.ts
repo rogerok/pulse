@@ -10,6 +10,7 @@ describe("ConfigService", () => {
     const encodedConfig = {
       monitors: [
         {
+          fallbackUrl: "https://github.com",
           id: "github-www",
           interval: "30s",
           url: "https://github.com",
@@ -35,7 +36,6 @@ describe("ConfigService", () => {
       FsService.make({
         append: (_path) =>
           Effect.die(new Error("append should not be used in config service test")),
-
         readText: (_path) =>
           Effect.gen(function* () {
             yield* Ref.update(calls, (n) => n + 1);
@@ -47,6 +47,7 @@ describe("ConfigService", () => {
 
             return JSON.stringify(encodedConfig);
           }),
+        writeText: () => Effect.void,
       }),
     );
 
@@ -60,7 +61,7 @@ describe("ConfigService", () => {
 
       // запускаем 10 ожидающих файберов
       const fibers = yield* Effect.forEach(Array.from({ length: 10 }), () =>
-        Effect.fork(configService.getConfig),
+        Effect.fork(configService.load),
       );
 
       yield* Deferred.await(loadStarted);
@@ -72,7 +73,7 @@ describe("ConfigService", () => {
       // отпускаем загрузку
       yield* Deferred.succeed(allowFinish, undefined);
 
-      // берем результат выполнения всех файберов ожидающих getConfig
+      // берем результат выполнения всех файберов ожидающих load
       const results = yield* Effect.forEach(fibers, Fiber.join);
 
       expect(results).toHaveLength(10);

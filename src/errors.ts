@@ -31,7 +31,9 @@ export class TimeoutError extends Data.TaggedError("TimeoutError")<{
 }> {}
 
 export class StorageError extends Data.TaggedError("StorageError")<{
-  readonly cause: unknown;
+  readonly cause: "already-exists" | "last-item" | "not-found";
+
+  readonly message?: string;
 }> {}
 
 export class FileSystemError extends Data.TaggedError("FileSystemError")<{

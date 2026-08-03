@@ -36,6 +36,12 @@ export class FsService extends Effect.Service<FsService>()("Pulse/FsService", {
         try: () => fs.readFile(path, "utf-8"),
         catch: (cause) => new FileSystemError({ cause, path }),
       }),
+
+    writeText: (path: string, content: string) =>
+      Effect.tryPromise({
+        try: () => fs.writeFile(path, content, "utf-8"),
+        catch: (cause) => new FileSystemError({ cause, path }),
+      }),
   },
 }) {}
 

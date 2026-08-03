@@ -8,6 +8,7 @@ import { ConfigService } from "../src/services/config.ts";
 const mockConfig = Schema.decodeUnknownSync(PulseConfig)({
   monitors: [
     {
+      fallbackUrl: "https://github.com",
       id: "github-www",
       interval: "30s",
       url: "https://github.com",
@@ -26,7 +27,7 @@ describe("Bootstrap", () => {
 
       const ConfigMock = Layer.mock(ConfigService, {
         _tag: "Pulse/ConfigService",
-        getConfig: Deferred.await(allowLoad).pipe(Effect.as(mockConfig)),
+        load: Deferred.await(allowLoad).pipe(Effect.as(mockConfig)),
       });
 
       const BootstrapTest = Bootstrap.Default.pipe(Layer.provide(ConfigMock));
@@ -48,7 +49,7 @@ describe("Bootstrap", () => {
 
         yield* Effect.yieldNow();
 
-        // Пока ConfigMock не завершил getConfig, Bootstrap не вызвал ready.open,
+        // Пока ConfigMock не завершил load, Bootstrap не вызвал ready.open,
         // поэтому ни один worker не должен был записать "started".
         const beforeOpen = yield* Ref.get(journal);
         expect(beforeOpen).toHaveLength(0);

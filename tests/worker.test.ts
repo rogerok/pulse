@@ -74,6 +74,7 @@ describe("worker", () => {
   const config = Schema.decodeUnknownSync(PulseConfig)({
     monitors: [
       {
+        fallbackUrl: "https://github.com",
         id: "github-www",
         interval: "30s",
         url: "https://github.com",

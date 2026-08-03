@@ -31,6 +31,7 @@ const WhoisMock = Layer.mock(Whois, {
 const mockConfig = Schema.decodeUnknownSync(PulseConfig)({
   monitors: [
     {
+      fallbackUrl: "https://github.com",
       id: "github-www",
       interval: "30s",
       url: "https://github.com",
@@ -66,7 +67,7 @@ describe("interrupt hw", () => {
 
       const ConfigMock = Layer.mock(ConfigService, {
         _tag: "Pulse/ConfigService",
-        getConfig: Effect.succeed(mockConfig),
+        load: Effect.succeed(mockConfig),
       });
       const BootstrapLive = Bootstrap.Default.pipe(Layer.provide(ConfigMock));
 

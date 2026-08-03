@@ -1,12 +1,12 @@
 import { Command } from "@effect/cli";
 import { Terminal } from "@effect/platform";
-import { Deferred, Effect, Mailbox, Match, Schedule, Stream } from "effect";
+import { Deferred, Effect, Mailbox, Match, Option, Schedule, Stream } from "effect";
 
 import type { MonitorEvent } from "../../events.ts";
 
 import { program } from "../../program.ts";
+import { type MonitorRuntime, MonitorState } from "../../services/monitor-state.ts";
 import { Sla } from "../../services/sla.ts";
-import { Storage } from "../../services/storage.ts";
 import { makeWatch } from "../../watch.ts";
 
 const enterAlternateScreen = (terminal: Terminal.Terminal) =>
@@ -45,12 +45,19 @@ const formatEventRow = (event: MonitorEvent): string =>
     Match.exhaustive,
   );
 
+const formatRuntimeRow = (runtime: MonitorRuntime) =>
+  Option.match(runtime.latest, {
+    onNone: () =>
+      `\x1b[90m● \x1b[0m${runtime.monitor.url.padEnd(40)} --- ${"---".padStart(5)} ms  pending\n`,
+    onSome: formatEventRow,
+  });
+
 const renderFrame = (terminal: Terminal.Terminal) =>
   Effect.gen(function* () {
-    const storage = yield* Storage;
+    const monitorState = yield* MonitorState;
     const sla = yield* Sla;
 
-    const monitors = yield* storage.readAll();
+    const monitors = yield* monitorState.snapshot;
     const slaState = yield* sla.snapshot;
 
     yield* terminal.display("\x1b[H\x1b[2J"); // курсор в (1,1), очистка экрана
@@ -59,7 +66,7 @@ const renderFrame = (terminal: Terminal.Terminal) =>
     );
 
     for (const monitor of monitors) {
-      yield* terminal.display(formatEventRow(monitor));
+      yield* terminal.display(formatRuntimeRow(monitor));
     }
   });
 
@@ -85,8 +92,6 @@ export const watchCommand = Command.make("watch", {}, () =>
     const stop = yield* Deferred.make<void>();
 
     yield* enterAlternateScreen(terminal);
-
-    yield* makeWatch(program);
 
     const renderLoop = renderFrame(terminal).pipe(Effect.repeat(Schedule.spaced("500 millis")));
 

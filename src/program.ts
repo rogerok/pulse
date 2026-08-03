@@ -8,7 +8,7 @@ import { worker } from "./worker.ts";
 export const program = Effect.scoped(
   Effect.gen(function* () {
     const configService = yield* ConfigService;
-    const config = yield* configService.getConfig;
+    const config = yield* configService.load;
 
     const queue = yield* ProbeQueue;
     const bus = yield* MonitorEvents;

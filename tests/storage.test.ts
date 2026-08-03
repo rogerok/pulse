@@ -1,18 +1,23 @@
-import { Effect, Layer, ManagedRuntime } from "effect";
+import { Effect, Layer, ManagedRuntime, Schema } from "effect";
 import { describe, expect } from "vitest";
 
-import { EventId, MonitorId } from "../src/config.ts";
+import { EventId, MonitorId, PulseConfig } from "../src/config.ts";
 import { FileSystemError } from "../src/errors.ts";
 import { MonitorEvent } from "../src/events.ts";
+import { ConfigService } from "../src/services/config.ts";
 import { FsService } from "../src/services/fs.ts";
-import {
-  Storage,
-  StorageConfig,
-  StorageInMemoryLive,
-  StorageLive,
-} from "../src/services/storage.ts";
+import { Storage, StorageInMemoryLive, StorageLive } from "../src/services/storage.ts";
 
 const eventId = EventId.make("1700000000000-5500");
+const storageConfig = Schema.decodeUnknownSync(PulseConfig)({
+  defaults: { jsonlPath: "test-events.jsonl" },
+  monitors: [],
+});
+const ConfigMock = Layer.mock(ConfigService, {
+  _tag: "Pulse/ConfigService",
+  load: Effect.succeed(storageConfig),
+});
+
 
 describe("StorageInMemoryLive", () => {
   it("returns appended events from readAll", async () => {
@@ -102,11 +107,7 @@ describe("StorageLive", () => {
       }),
     );
 
-    const StorageConfigMock = Layer.succeed(StorageConfig, {
-      path: "test-path.jsonl",
-    });
-
-    const TestLive = StorageLive.pipe(Layer.provide(Layer.mergeAll(FsMock, StorageConfigMock)));
+    const TestLive = StorageLive.pipe(Layer.provide(Layer.mergeAll(FsMock, ConfigMock)));
 
     const runtime = ManagedRuntime.make(TestLive);
 
@@ -157,11 +158,7 @@ describe("StorageLive", () => {
       }),
     );
 
-    const StorageConfigMock = Layer.succeed(StorageConfig, {
-      path: "test-path.jsonl",
-    });
-
-    const TestLive = StorageLive.pipe(Layer.provide(Layer.mergeAll(FsMock, StorageConfigMock)));
+    const TestLive = StorageLive.pipe(Layer.provide(Layer.mergeAll(FsMock, ConfigMock)));
 
     const events = await Effect.runPromise(
       Effect.gen(function* () {
@@ -206,11 +203,7 @@ describe("StorageLive", () => {
       }),
     );
 
-    const StorageConfigMock = Layer.succeed(StorageConfig, {
-      path: "test-path.jsonl",
-    });
-
-    const TestLive = StorageLive.pipe(Layer.provide(Layer.mergeAll(FsMock, StorageConfigMock)));
+    const TestLive = StorageLive.pipe(Layer.provide(Layer.mergeAll(FsMock, ConfigMock)));
 
     const events = await Effect.runPromise(
       Effect.gen(function* () {
@@ -252,11 +245,7 @@ describe("StorageLive", () => {
       }),
     );
 
-    const StorageConfigMock = Layer.succeed(StorageConfig, {
-      path: "test-path.jsonl",
-    });
-
-    const TestLive = StorageLive.pipe(Layer.provide(Layer.mergeAll(FsMock, StorageConfigMock)));
+    const TestLive = StorageLive.pipe(Layer.provide(Layer.mergeAll(FsMock, ConfigMock)));
 
     const result = await Effect.runPromise(
       Effect.gen(function* () {
@@ -285,11 +274,7 @@ describe("StorageLive", () => {
       }),
     );
 
-    const StorageConfigMock = Layer.succeed(StorageConfig, {
-      path: "test-path.jsonl",
-    });
-
-    const TestLive = StorageLive.pipe(Layer.provide(Layer.mergeAll(FsMock, StorageConfigMock)));
+    const TestLive = StorageLive.pipe(Layer.provide(Layer.mergeAll(FsMock, ConfigMock)));
 
     const result = await Effect.runPromise(
       Effect.gen(function* () {

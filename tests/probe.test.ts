@@ -1,15 +1,16 @@
-import { Effect, Exit, Layer, ManagedRuntime } from "effect";
+import { Effect, Exit, Layer, ManagedRuntime, Schema } from "effect";
 import { expect } from "vitest";
 
-import { EventId, MonitorId } from "../src/config.ts";
+import { EventId, MonitorId, PulseConfig } from "../src/config.ts";
 import { NetworkError } from "../src/errors.ts";
 import { MonitorEvent } from "../src/events.ts";
 import { probe } from "../src/probe/probe.ts";
+import { ConfigService } from "../src/services/config.ts";
 import { DnsCache } from "../src/services/dns.ts";
 import { FsService } from "../src/services/fs.ts";
 import { HttpService } from "../src/services/http.ts";
 import { MonitorEvents } from "../src/services/monitor-events.ts";
-import { Storage, StorageConfig, StorageLive } from "../src/services/storage.ts";
+import { Storage, StorageLive } from "../src/services/storage.ts";
 import { Whois } from "../src/services/whois.ts";
 const DnsMock = Layer.mock(DnsCache, {
   _tag: "Pulse/DnsCache",
@@ -23,6 +24,15 @@ const WhoisMock = Layer.mock(Whois, {
       expiresAt: new Date("2100-01-01T00:00:00.000Z"),
       registrar: "Test Registrar",
     }),
+});
+
+const storageConfig = Schema.decodeUnknownSync(PulseConfig)({
+  defaults: { jsonlPath: "test-events.jsonl" },
+  monitors: [],
+});
+const ConfigMock = Layer.mock(ConfigService, {
+  _tag: "Pulse/ConfigService",
+  load: Effect.succeed(storageConfig),
 });
 
 const ProbeDependencies = Layer.mergeAll(DnsMock, MonitorEvents.Default, WhoisMock);
@@ -83,11 +93,7 @@ describe("probe", () => {
         }),
     });
 
-    const StorageConfigMock = Layer.succeed(StorageConfig, {
-      path: "test-path.jsonl",
-    });
-
-    const TestLive = StorageLive.pipe(Layer.provide(Layer.mergeAll(FsMock, StorageConfigMock)));
+    const TestLive = StorageLive.pipe(Layer.provide(Layer.mergeAll(FsMock, ConfigMock)));
 
     const runtime = ManagedRuntime.make(Layer.mergeAll(TestLive, HttpMock, ProbeDependencies));
 

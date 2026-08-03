@@ -17,6 +17,7 @@ describe("decodeFromFile", () => {
       JSON.stringify({
         monitors: [
           {
+            fallbackUrl: "https://github.com",
             id: "github-www",
             interval: "30s",
             url: "https://github.com",
@@ -36,6 +37,7 @@ describe("decodeFromFile", () => {
       monitors: [
         {
           expect: { status: 200 },
+          fallbackUrl: "https://github.com",
           id: "github-www",
           interval: 30_000,
           url: "https://github.com",
@@ -53,6 +55,7 @@ describe("decodeFromFile", () => {
       JSON.stringify({
         monitors: [
           {
+            fallbackUrl: "https://github.com",
             id: "github-www",
             interval: "30wat",
             url: "https://github.com",
@@ -103,8 +106,11 @@ describe("MonitorDefaults", () => {
   it("fills defaults for an empty object", () => {
     expect(Schema.decodeUnknownSync(MonitorDefaults)({})).toEqual({
       interval: 30_000,
+      jsonlPath: "./src/events.jsonl",
+      name: "pulse",
       retries: 0,
       timeout: 5000,
+      writeJsonl: true,
     });
   });
 });

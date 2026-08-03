@@ -50,7 +50,7 @@ export const removeCommand = Command.make("remove", { url }, ({ url }) =>
 export const list = Command.make("list", {}, () =>
   Effect.gen(function* () {
     const configService = yield* ConfigService;
-    const config = yield* configService.getConfig;
+    const config = yield* configService.load;
 
     yield* Effect.forEach(config.monitors, (m) => Effect.log(m));
   }),

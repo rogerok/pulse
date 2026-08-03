@@ -20,7 +20,7 @@ export class Bootstrap extends Effect.Service<Bootstrap>()("Pulse/Bootstrap", {
 
       // Bootstrap ждёт готовности ConfigService.
       // Если загрузка упадёт, latch не откроется и worker-ы не стартуют.
-      yield* configService.getConfig;
+      yield* configService.load;
 
       // Один open отпускает все fiber-ы, которые уже стоят на ready.await.
       yield* ready.open;

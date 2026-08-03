@@ -61,7 +61,7 @@ describe("ConfigService", () => {
 
       // запускаем 10 ожидающих файберов
       const fibers = yield* Effect.forEach(Array.from({ length: 10 }), () =>
-        Effect.fork(configService.getConfig),
+        Effect.fork(configService.load),
       );
 
       yield* Deferred.await(loadStarted);
@@ -73,7 +73,7 @@ describe("ConfigService", () => {
       // отпускаем загрузку
       yield* Deferred.succeed(allowFinish, undefined);
 
-      // берем результат выполнения всех файберов ожидающих getConfig
+      // берем результат выполнения всех файберов ожидающих load
       const results = yield* Effect.forEach(fibers, Fiber.join);
 
       expect(results).toHaveLength(10);

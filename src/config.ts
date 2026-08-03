@@ -1,6 +1,5 @@
 import { Effect, ParseResult, Schema } from "effect";
 
-import { IntervalDefault, RetriesDefault, TimeoutDefault } from "./constants.ts";
 import { ConfigError } from "./errors.ts";
 import { FsService } from "./services/fs.ts";
 
@@ -59,7 +58,16 @@ export const Interval = Schema.transformOrFail(Schema.String, IntervalMs, {
 });
 export type Interval = Schema.Schema.Type<typeof Interval>;
 
+export const IntervalNum = 30_000;
+export const RetriesDefault = 0;
+export const TimeoutDefault = 5000;
+export const NameDefault = "pulse";
+export const WriteJsonl = true;
+export const JsonlPath = "./src/events.jsonl";
+
+const IntervalDefault = IntervalMs.make(IntervalNum);
 const StatusDefault = 200;
+
 export const Expect = Schema.Struct({
   status: Schema.optionalWith(Schema.Number, { default: () => StatusDefault }),
 });
@@ -75,9 +83,18 @@ export const Monitor = Schema.Struct({
 export type Monitor = Schema.Schema.Type<typeof Monitor>;
 
 export const MonitorDefaults = Schema.Struct({
-  interval: Schema.optionalWith(Schema.Number, { default: () => IntervalDefault }),
+  interval: Schema.optionalWith(Interval, {
+    default: () => IntervalDefault,
+  }),
+  jsonlPath: Schema.optionalWith(Schema.String.pipe(Schema.maxLength(20)), {
+    default: () => JsonlPath,
+  }),
+  name: Schema.optionalWith(Schema.String.pipe(Schema.maxLength(20)), {
+    default: () => NameDefault,
+  }),
   retries: Schema.optionalWith(Schema.Number, { default: () => RetriesDefault }),
   timeout: Schema.optionalWith(Schema.Number, { default: () => TimeoutDefault }),
+  writeJsonl: Schema.optionalWith(Schema.Boolean, { default: () => WriteJsonl }),
 });
 export type MonitorDefaults = Schema.Schema.Type<typeof MonitorDefaults>;
 
@@ -85,11 +102,14 @@ export const PulseConfig = Schema.Struct({
   defaults: Schema.optionalWith(MonitorDefaults, {
     default: () => ({
       interval: IntervalDefault,
+      jsonlPath: JsonlPath,
+      name: NameDefault,
       retries: RetriesDefault,
       timeout: TimeoutDefault,
+      writeJsonl: WriteJsonl,
     }),
   }),
-  monitors: Schema.Array(Monitor).pipe(Schema.minItems(1)),
+  monitors: Schema.Array(Monitor),
 });
 export type PulseConfig = Schema.Schema.Type<typeof PulseConfig>;
 

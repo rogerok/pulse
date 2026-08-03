@@ -1,4 +1,7 @@
 {
+  "name": "pulse",
+  "defaultInterval": "30s",
+  "writeJsonl": true,
   "monitors": [
     {
       "id": "github-www",

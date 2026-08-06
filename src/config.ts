@@ -1,4 +1,5 @@
 import { Effect, ParseResult, Schema } from "effect";
+import { randomUUID } from "node:crypto";
 
 import { ConfigError } from "./errors.ts";
 import { FsService } from "./services/fs.ts";
@@ -130,3 +131,5 @@ export const decodeFromFile = (path: string) =>
       Effect.mapError((cause) => new ConfigError({ cause, path })),
     );
   });
+
+export const generateMonitorId = Effect.sync(() => MonitorId.make(`m-${randomUUID()}`));

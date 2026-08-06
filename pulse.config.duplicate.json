@@ -1,0 +1,11 @@
+{
+  "defaults": {
+    "interval": "1m",
+    "jsonlPath": "./src/events.jsonl",
+    "name": "pulse",
+    "retries": 0,
+    "timeout": 5000,
+    "writeJsonl": false
+  },
+  "monitors": []
+}

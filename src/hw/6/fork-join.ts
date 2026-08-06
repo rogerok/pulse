@@ -13,12 +13,10 @@ const sleep = Effect.gen(function* () {
 const sleepWithError = Effect.gen(function* () {
   yield* Effect.sleep("2 seconds");
 
-  return yield* Effect.fail(
-    new CustomError({
-      cause: "failed",
-      msg: "something went wrong",
-    }),
-  );
+  return yield* new CustomError({
+    cause: "failed",
+    msg: "something went wrong",
+  });
 });
 
 export const programJoin: Effect.Effect<void> = Effect.gen(function* () {

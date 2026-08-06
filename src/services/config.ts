@@ -1,6 +1,6 @@
 import { Context, Effect, Layer, Option, Ref, Schema } from "effect";
 
-import { decodeFromFile, Monitor, PulseConfig, Url } from "../config.ts";
+import { decodeFromFile, Monitor, MonitorId, PulseConfig, Url } from "../config.ts";
 import { StorageError } from "../errors.ts";
 import { FsService } from "./fs.ts";
 
@@ -61,12 +61,10 @@ export class ConfigService extends Effect.Service<ConfigService>()("Pulse/Config
           const alreadyExists = config.monitors.some((c) => c.id === monitor.id);
 
           if (alreadyExists) {
-            return yield* Effect.fail(
-              new StorageError({
-                cause: "already-exists",
-                message: "Монитор уже существует",
-              }),
-            );
+            return yield* new StorageError({
+              cause: "already-exists",
+              message: "Монитор уже существует",
+            });
           }
 
           const updatedConfig = { ...config, monitors: [...config.monitors, monitor] };
@@ -84,12 +82,10 @@ export class ConfigService extends Effect.Service<ConfigService>()("Pulse/Config
 
           const alreadyExists = config.monitors.some((c) => c.url === url);
           if (!alreadyExists) {
-            return yield* Effect.fail(
-              new StorageError({
-                cause: "not-found",
-                message: "Монитор не найден",
-              }),
-            );
+            return new StorageError({
+              cause: "not-found",
+              message: "Монитор не найден",
+            });
           }
 
           if (config.monitors.length === 1) {
@@ -109,9 +105,16 @@ export class ConfigService extends Effect.Service<ConfigService>()("Pulse/Config
         }),
       );
 
+    const list = load.pipe(Effect.map((c) => c.monitors));
+
+    const get = (id: MonitorId) =>
+      load.pipe(Effect.map((c) => Option.fromNullable(c.monitors.find((m) => m.id === id))));
+
     return {
       addMonitor,
+      get,
       initialize,
+      list,
       load,
       removeMonitor,
     };

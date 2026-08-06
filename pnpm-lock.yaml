@@ -24,6 +24,9 @@ importers:
         specifier: ^7.4.9
         version: 7.4.9
     devDependencies:
+      '@effect/language-service':
+        specifier: ^0.87.1
+        version: 0.87.1
       '@effect/vitest':
         specifier: ^0.29.0
         version: 0.29.0(effect@3.21.2)(vitest@3.2.7)
@@ -92,6 +95,10 @@ packages:
         optional: true
       lmdb:
         optional: true
+
+  '@effect/language-service@0.87.1':
+    resolution: {integrity: sha512-kcljlJmEgqg5mFAM6UShJYJjMqJb3TbHHxrK8Qoubvwugc0aVWpRkbdgQvK5b17puOt3BKXXKOmcV+oQt0oQqQ==}
+    hasBin: true
 
   '@effect/platform-node-shared@0.60.0':
     resolution: {integrity: sha512-obT8Mau/guSYjehF9pg09FHM/ERXAAVBl/FXRXEyvTc7ZiDGTYnPBihytGNccsfNsgqBdvCE24sflwK6j5nFXA==}
@@ -1374,6 +1381,8 @@ snapshots:
       '@effect/platform': 0.97.1(effect@3.21.2)
       effect: 3.21.2
       uuid: 11.1.1
+
+  '@effect/language-service@0.87.1': {}
 
   '@effect/platform-node-shared@0.60.0(@effect/cluster@0.59.0(@effect/platform@0.97.1(effect@3.21.2))(@effect/rpc@0.75.1(@effect/platform@0.97.1(effect@3.21.2))(effect@3.21.2))(@effect/sql@0.51.1(@effect/experimental@0.60.0(@effect/platform@0.97.1(effect@3.21.2))(effect@3.21.2))(@effect/platform@0.97.1(effect@3.21.2))(effect@3.21.2))(@effect/workflow@0.18.2(@effect/experimental@0.60.0(@effect/platform@0.97.1(effect@3.21.2))(effect@3.21.2))(@effect/platform@0.97.1(effect@3.21.2))(@effect/rpc@0.75.1(@effect/platform@0.97.1(effect@3.21.2))(effect@3.21.2))(effect@3.21.2))(effect@3.21.2))(@effect/platform@0.97.1(effect@3.21.2))(@effect/rpc@0.75.1(@effect/platform@0.97.1(effect@3.21.2))(effect@3.21.2))(@effect/sql@0.51.1(@effect/experimental@0.60.0(@effect/platform@0.97.1(effect@3.21.2))(effect@3.21.2))(@effect/platform@0.97.1(effect@3.21.2))(effect@3.21.2))(effect@3.21.2)':
     dependencies:

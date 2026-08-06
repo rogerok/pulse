@@ -54,14 +54,8 @@ export const StorageLive = Layer.scoped(
     );
 
     return {
-      append: (e: MonitorEvent) =>
-        Effect.gen(function* () {
-          yield* handle.write(JSON.stringify(e) + "\n");
-        }),
-      appendBatch: (events) =>
-        Effect.gen(function* () {
-          yield* handle.write(events.map((e) => JSON.stringify(e)).join("\n") + "\n");
-        }),
+      append: (e: MonitorEvent) => handle.write(JSON.stringify(e) + "\n"),
+      appendBatch: (events) => handle.write(events.map((e) => JSON.stringify(e)).join("\n") + "\n"),
       readAll: () =>
         Effect.gen(function* () {
           const text = yield* fsService.readText(path);

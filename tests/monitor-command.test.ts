@@ -99,9 +99,9 @@ describe("monitor commands", () => {
       let writtenConfig: PulseConfig | undefined;
 
       const writeText = vi.fn((_: string, text: string) =>
-        Effect.sync(() => {
-          writtenConfig = Schema.decodeUnknownSync(PulseConfig)(JSON.parse(text));
-        }),
+        Effect.gen(function* () {
+          writtenConfig = yield* Schema.decodeUnknown(Schema.parseJson(PulseConfig))(text);
+        }).pipe(Effect.orDie),
       );
 
       const ConfigServiceTest = makeConfigService(encodedConfig, writeText);

@@ -40,11 +40,11 @@ describe("PubSub hw", () => {
 
               const currentLogs = yield* Ref.get(logs);
               if (currentLogs.length === shouldFailMaxCount) {
-                yield* Effect.fail(new Error(name));
+                return yield* Effect.fail(new Error(name));
               }
             });
 
-            yield* readOne.pipe(Effect.forever);
+            return yield* readOne.pipe(Effect.forever);
           }),
         );
 
@@ -60,7 +60,7 @@ describe("PubSub hw", () => {
               yield* Ref.update(logs, (logs) => [...logs, log]);
             });
 
-            yield* readOne.pipe(Effect.forever);
+            return yield* readOne.pipe(Effect.forever);
           }),
         );
 

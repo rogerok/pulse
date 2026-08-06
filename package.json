@@ -23,6 +23,7 @@
     "tldts": "^7.4.9"
   },
   "devDependencies": {
+    "@effect/language-service": "^0.87.1",
     "@effect/vitest": "^0.29.0",
     "@eslint/js": "^9.39.2",
     "@types/node": "^24.10.1",

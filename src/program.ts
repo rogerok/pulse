@@ -32,17 +32,15 @@ export const program = Effect.scoped(
       events,
       (event) =>
         Effect.gen(function* () {
-          yield* Effect.gen(function* () {
-            if (event._tag === "ProbeSuccess") {
-              yield* Effect.log(
-                `${event.monitorId}: status ${event.status} in ${event.elapsedMs} ms`,
-              );
-            } else if (event._tag === "ProbeFailure") {
-              yield* Effect.logError(`${event.monitorId}: ${event.reason}`);
-            }
-          });
+          if (event._tag === "ProbeSuccess") {
+            yield* Effect.log(
+              `${event.monitorId}: status ${event.status} in ${event.elapsedMs} ms`,
+            );
+          } else if (event._tag === "ProbeFailure") {
+            yield* Effect.logError(`${event.monitorId}: ${event.reason}`);
+          }
         }),
-      { concurrency: 2 },
+      { concurrency: 2, discard: true },
     );
   }),
 );

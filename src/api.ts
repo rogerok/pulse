@@ -1,14 +1,18 @@
 import {
+  Headers,
   HttpApi,
   HttpApiBuilder,
   HttpApiEndpoint,
   HttpApiGroup,
   HttpApiSchema,
+  HttpServerResponse,
 } from "@effect/platform";
-import { Effect, Layer, Option, Schema } from "effect";
+import { Effect, Layer, Option, Schema, Stream } from "effect";
 
 import { generateMonitorId, Monitor, MonitorId } from "./config.ts";
+import { encodeSse } from "./encode.ts";
 import { ConfigService } from "./services/config.ts";
+import { MonitorEvents } from "./services/monitor-events.ts";
 import { Sla } from "./services/sla.ts";
 
 const NotFound = Schema.TaggedStruct("NotFound", { id: Schema.String });
@@ -58,7 +62,15 @@ const statusGroup = HttpApiGroup.make("status").add(
     .addError(ServiceError, { status: 500 }),
 );
 
-export const PulseApi = HttpApi.make("pulse").add(monitorsGroup).add(statusGroup);
+const eventsGroup = HttpApiGroup.make("events").add(
+  HttpApiEndpoint.get("stream")`/events`.addSuccess(
+    HttpApiSchema.Text({
+      contentType: "text/event-stream",
+    }),
+  ),
+);
+
+export const PulseApi = HttpApi.make("pulse").add(monitorsGroup).add(statusGroup).add(eventsGroup);
 
 const StatusLive = HttpApiBuilder.group(PulseApi, "status", (handlers) =>
   handlers.handle("snapshot", () =>
@@ -141,7 +153,25 @@ const MonitorsLive = HttpApiBuilder.group(PulseApi, "monitors", (handlers) =>
     ),
 );
 
+const eventsHandler = Effect.gen(function* () {
+  const events = yield* MonitorEvents;
+  const stream = Stream.fromPubSub(events.pubsub).pipe(Stream.map(encodeSse));
+
+  return HttpServerResponse.stream(stream, {
+    contentType: "text/event-stream",
+    headers: Headers.fromInput({
+      "cache-control": "no-cache",
+      connection: "keep-alive",
+    }),
+  });
+});
+
+const EventsLive = HttpApiBuilder.group(PulseApi, "events", (handlers) =>
+  handlers.handleRaw("stream", () => eventsHandler),
+);
+
 export const PulseApiLive = HttpApiBuilder.api(PulseApi).pipe(
   Layer.provide(MonitorsLive),
   Layer.provide(StatusLive),
+  Layer.provide(EventsLive),
 );

@@ -1,38 +1,57 @@
 {
-  "name": "pulse",
-  "defaultInterval": "30s",
-  "writeJsonl": true,
+  "defaults": {
+    "interval": "30s",
+    "jsonlPath": "./src/events.jsonl",
+    "name": "pulse",
+    "retries": 0,
+    "timeout": 5000,
+    "writeJsonl": true
+  },
   "monitors": [
     {
+      "expect": {
+        "status": 200
+      },
+      "fallbackUrl": "https://github.com",
       "id": "github-www",
-      "url": "https://github.com",
-      "fallbackUrl": "https://github.com",
-      "interval": "2s"
-    },
-    {
-      "id": "self-api",
-      "url": "https://api.self.local/health",
       "interval": "2s",
+      "url": "https://github.com"
+    },
+    {
+      "expect": {
+        "status": 200
+      },
       "fallbackUrl": "https://github.com",
-      "expect": { "status": 200 }
+      "id": "self-api",
+      "interval": "2s",
+      "url": "https://api.self.local/health"
     },
     {
-      "id": "json-todo",
+      "expect": {
+        "status": 200
+      },
       "fallbackUrl": "https://jsonplaceholder.typicode.com/todos/2",
-      "url": "https://jsonplaceholder.typicode.com/todos/1",
-      "interval": "2s"
+      "id": "json-todo",
+      "interval": "2s",
+      "url": "https://jsonplaceholder.typicode.com/todos/1"
     },
     {
-      "id": "json-post",
+      "expect": {
+        "status": 200
+      },
       "fallbackUrl": "https://jsonplaceholder.typicode.com/posts/2",
-      "url": "https://jsonplaceholder.typicode.com/posts/1",
-      "interval": "2s"
+      "id": "json-post",
+      "interval": "2s",
+      "url": "https://jsonplaceholder.typicode.com/posts/1"
     },
     {
-      "id": "json-user",
+      "expect": {
+        "status": 200
+      },
       "fallbackUrl": "https://jsonplaceholder.typicode.com/users/2",
-      "url": "https://jsonplaceholder.typicode.com/users/1",
-      "interval": "2s"
+      "id": "json-user",
+      "interval": "2s",
+      "url": "https://jsonplaceholder.typicode.com/users/1"
     }
   ]
 }
